@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oração do Dia</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f4f8; /* Fundo azul-acinzentado claro */
+            color: #333;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 15px; /* Cantos arredondados */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Sombra suave */
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #4a90e2; /* Azul vibrante para o título */
+            margin-bottom: 25px;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+        p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #555;
+        }
+        button {
+            background-color: #7b68ee; /* Roxo médio para o botão */
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px; /* Botão em formato de pílula */
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 5px 15px rgba(123, 104, 238, 0.3);
+        }
+        button:hover {
+            background-color: #6a5acd; /* Roxo mais escuro ao passar o mouse */
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        #message {
+            margin-top: 25px;
+            font-size: 1.2em;
+            color: #28a745; /* Verde para mensagem de sucesso */
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        #message.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Oração do Dia</h1>
+        <p>
+            O Senhor é o meu pastor; nada me faltará. <br>
+            Em verdes pastagens me faz repousar e a águas tranquilas me guia. <br>
+            Restaura a minha alma; guia-me pelos caminhos da justiça por amor do seu nome. <br>
+            Ainda que eu ande pelo vale da sombra da morte, não temerei mal algum, porque tu estás comigo; <br>
+            a tua vara e o teu cajado me consolam. <br>
+            Preparas uma mesa perante mim na presença dos meus inimigos; <br>
+            unges a minha cabeça com óleo; o meu cálice transborda. <br>
+            Certamente que a bondade e a misericórdia me seguirão todos os dias da minha vida; <br>
+            e habitarei na casa do Senhor por longos dias.
+        </p>
+        <button id="markAsDone">Marcar como Concluído</button>
+        <p id="message"></p>
+    </div>
+
+    <script>
+        document.getElementById('markAsDone').addEventListener('click', function() {
+            const messageElement = document.getElementById('message');
+            messageElement.textContent = 'Concluído!';
+            messageElement.classList.add('show');
+            // Opcional: Esconder a mensagem após alguns segundos
+            setTimeout(() => {
+                messageElement.classList.remove('show');
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
