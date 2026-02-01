@@ -27,6 +27,12 @@
             width: 100%;
             text-align: center;
         }
+        .day-counter {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #7b68ee; /* Cor do botão para o contador */
+            margin-bottom: 20px;
+        }
         h1 {
             color: #4a90e2; /* Azul vibrante para o título */
             margin-bottom: 25px;
@@ -79,6 +85,7 @@
 </head>
 <body>
     <div class="container">
+        <div id="dayCounter" class="day-counter"></div>
         <h1>Oração do Dia</h1>
         <div id="gospelContent">
             <p>Carregando o Evangelho do Dia...</p>
@@ -92,6 +99,45 @@
             const markAsDoneButton = document.getElementById('markAsDone');
             const messageElement = document.getElementById('message');
             const gospelContentDiv = document.getElementById('gospelContent');
+            const dayCounterElement = document.getElementById('dayCounter');
+
+            const STORAGE_KEY_DAYS = 'prayerDaysCompleted';
+            const STORAGE_KEY_MONTH = 'prayerLastMonthReset';
+
+            let daysCompleted = 0;
+            let currentMonthYear = ''; // Format: YYYY-MM
+
+            function getCurrentMonthYear() {
+                const today = new Date();
+                return `${today.getFullYear()}-${today.getMonth() + 1}`;
+            }
+
+            function loadCounter() {
+                currentMonthYear = getCurrentMonthYear();
+                const storedMonthYear = localStorage.getItem(STORAGE_KEY_MONTH);
+                const storedDays = parseInt(localStorage.getItem(STORAGE_KEY_DAYS) || '0', 10);
+
+                if (storedMonthYear !== currentMonthYear) {
+                    // New month, reset counter
+                    daysCompleted = 0;
+                    localStorage.setItem(STORAGE_KEY_MONTH, currentMonthYear);
+                    localStorage.setItem(STORAGE_KEY_DAYS, '0');
+                } else {
+                    // Same month, load stored days
+                    daysCompleted = storedDays;
+                }
+                updateDayCounterDisplay();
+            }
+
+            function updateDayCounterDisplay() {
+                dayCounterElement.textContent = `🔥 Você completou ${daysCompleted} dias este mês`;
+            }
+
+            function incrementCounter() {
+                daysCompleted++;
+                localStorage.setItem(STORAGE_KEY_DAYS, daysCompleted.toString());
+                updateDayCounterDisplay();
+            }
 
             async function fetchAndDisplayGospel() {
                 gospelContentDiv.innerHTML = '<p>Carregando o Evangelho do Dia...</p>'; // Mensagem de carregamento
@@ -121,9 +167,11 @@
 
             // Chama a função para buscar e exibir o evangelho quando a página carregar
             fetchAndDisplayGospel();
+            loadCounter(); // Carrega o contador ao carregar a página
 
-            // Funcionalidade existente do botão
+            // Funcionalidade existente do botão, agora com incremento do contador
             markAsDoneButton.addEventListener('click', function() {
+                incrementCounter(); // Incrementa e salva o contador
                 messageElement.textContent = 'Concluído!';
                 messageElement.classList.add('show');
                 setTimeout(() => {
