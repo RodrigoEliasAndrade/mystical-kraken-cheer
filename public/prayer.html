@@ -57,7 +57,51 @@
             padding: 30px 20px;
             text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: relative;
         }
+
+        .notification-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            z-index: 1001;
+        }
+        .notification-btn.active { color: var(--accent); }
+        .notification-btn.inactive { color: #888; opacity: 0.6; }
+
+        .notification-menu {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            padding: 20px;
+            width: 240px;
+            display: none;
+            z-index: 1002;
+            text-align: left;
+            color: var(--text);
+        }
+        .notification-menu.show { display: block; }
+        .notification-menu h3 { margin: 0 0 15px; font-size: 1em; color: var(--primary); }
+        
+        .menu-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        .menu-row label { font-size: 0.9em; font-weight: 700; }
+        
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        select { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border); font-family: inherit; margin-bottom: 15px; }
 
         .app-header .cross {
             font-size: 24px;
@@ -374,6 +418,38 @@
     <div class="liturgical-bar" id="liturgicalBar"></div>
 
     <header class="app-header">
+        <button id="notificationBtn" class="notification-btn inactive">🔕</button>
+        <div id="notificationMenu" class="notification-menu">
+            <h3>Lembretes</h3>
+            <div class="menu-row">
+                <label>Ativar</label>
+                <label class="switch">
+                    <input type="checkbox" id="notifToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <label style="font-size: 0.8em; font-weight: 700; display: block; margin-bottom: 5px;">Horário</label>
+            <select id="notifTime">
+                <optgroup label="Manhã">
+                    <option value="06:00">06:00</option>
+                    <option value="07:00">07:00</option>
+                    <option value="08:00">08:00</option>
+                </optgroup>
+                <optgroup label="Tarde">
+                    <option value="12:00">12:00</option>
+                    <option value="13:00">13:00</option>
+                    <option value="14:00">14:00</option>
+                </optgroup>
+                <optgroup label="Noite">
+                    <option value="18:00">18:00</option>
+                    <option value="19:00">19:00</option>
+                    <option value="20:00">20:00</option>
+                    <option value="21:00">21:00</option>
+                </optgroup>
+            </select>
+            <button id="saveNotif" class="btn btn-primary" style="padding: 10px; font-size: 0.8em;">Salvar</button>
+        </div>
+
         <span class="cross">✝</span>
         <h1>Equipes de Nossa Senhora</h1>
         <p>Oração Diária</p>
@@ -437,8 +513,17 @@
             const methodBtns = document.querySelectorAll('.method-btn');
             const prayerActions = document.getElementById('prayerActions');
 
+            // Notification Elements
+            const notificationBtn = document.getElementById('notificationBtn');
+            const notificationMenu = document.getElementById('notificationMenu');
+            const notifToggle = document.getElementById('notifToggle');
+            const notifTime = document.getElementById('notifTime');
+            const saveNotif = document.getElementById('saveNotif');
+
             const STORAGE_KEY_COMPLETED = 'prayerCompletedDaysList';
             const STORAGE_KEY_MONTH = 'prayerLastMonthReset';
+            const STORAGE_KEY_NOTIF = 'prayerNotificationSettings';
+            const STORAGE_KEY_LAST_NOTIF = 'prayerLastNotificationSent';
 
             let completedDays = [];
             let today = new Date();
@@ -482,6 +567,7 @@
 
                 renderCalendar();
                 updateDayCounterDisplay();
+                loadNotificationSettings();
             }
 
             function updateDayCounterDisplay() {
@@ -717,6 +803,75 @@
                     alert('Evangelho copiado!');
                 }
             });
+
+            // Notification Logic
+            function loadNotificationSettings() {
+                const settings = JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIF) || '{"enabled": false, "time": "07:00"}');
+                notifToggle.checked = settings.enabled;
+                notifTime.value = settings.time;
+                updateBellIcon(settings.enabled);
+            }
+
+            function updateBellIcon(enabled) {
+                if (enabled) {
+                    notificationBtn.textContent = '🔔';
+                    notificationBtn.classList.remove('inactive');
+                    notificationBtn.classList.add('active');
+                } else {
+                    notificationBtn.textContent = '🔕';
+                    notificationBtn.classList.remove('active');
+                    notificationBtn.classList.add('inactive');
+                }
+            }
+
+            notificationBtn.onclick = () => {
+                if (Notification.permission === 'default') {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            notificationMenu.classList.toggle('show');
+                        }
+                    });
+                } else {
+                    notificationMenu.classList.toggle('show');
+                }
+            };
+
+            saveNotif.onclick = () => {
+                const settings = {
+                    enabled: notifToggle.checked,
+                    time: notifTime.value
+                };
+                localStorage.setItem(STORAGE_KEY_NOTIF, JSON.stringify(settings));
+                updateBellIcon(settings.enabled);
+                notificationMenu.classList.remove('show');
+                alert('Configurações salvas!');
+            };
+
+            function checkAndNotify() {
+                const settings = JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIF) || '{"enabled": false, "time": "07:00"}');
+                if (!settings.enabled) return;
+
+                const now = new Date();
+                const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                const dateKey = getCurrentDateKey();
+
+                // Check if it's time, if not already completed today, and if not already notified today
+                if (currentTime === settings.time && !completedDays.includes(dateKey)) {
+                    const lastNotif = localStorage.getItem(STORAGE_KEY_LAST_NOTIF);
+                    if (lastNotif !== dateKey) {
+                        if (Notification.permission === 'granted') {
+                            new Notification("Equipes - Oração Diária", {
+                                body: "Está na hora da sua oração diária! 🙏",
+                                icon: "/favicon.ico"
+                            });
+                            localStorage.setItem(STORAGE_KEY_LAST_NOTIF, dateKey);
+                        }
+                    }
+                }
+            }
+
+            // Check every minute
+            setInterval(checkAndNotify, 60000);
 
             loadData();
             fetchLiturgia();
