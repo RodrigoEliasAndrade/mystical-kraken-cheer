@@ -176,7 +176,7 @@
             color: white;
         }
 
-        /* Slider Wrapper & Arrows */
+        /* Slider Wrapper & Controls */
         .slider-wrapper {
             position: relative;
             width: 100%;
@@ -189,10 +189,14 @@
             min-height: 420px;
             perspective: 1000px;
         }
+        .slider-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding: 0 10px;
+        }
         .nav-arrow {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
             width: 48px;
             height: 48px;
             background: var(--primary);
@@ -204,14 +208,17 @@
             align-items: center;
             justify-content: center;
             font-size: 1.5em;
-            z-index: 100;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            opacity: 0.8;
+            z-index: 10;
         }
-        .nav-arrow:hover { opacity: 1; transform: translateY(-50%) scale(1.1); }
-        .nav-arrow.left { left: -20px; }
-        .nav-arrow.right { right: -20px; }
-        .nav-arrow:disabled { display: none; }
+        .nav-arrow:hover { transform: scale(1.1); }
+        .nav-arrow:disabled { visibility: hidden; }
+
+        .progress-indicator {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 16px;
+        }
 
         /* Slider Cards */
         .slider-card {
@@ -299,25 +306,6 @@
             font-size: 1em;
         }
 
-        /* Progress Dots */
-        .dots-container {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 15px;
-        }
-        .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #ddd;
-            transition: all 0.3s;
-        }
-        .dot.active {
-            background: var(--accent);
-            transform: scale(1.2);
-        }
-
         /* Timer & Input */
         .timer-display {
             font-size: 2.5em;
@@ -378,8 +366,6 @@
         #message.show { opacity: 1; }
 
         @media (max-width: 550px) {
-            .nav-arrow.left { left: 5px; }
-            .nav-arrow.right { right: 5px; }
             .slider-card { padding: 30px 20px; }
         }
     </style>
@@ -417,12 +403,14 @@
         </div>
 
         <div id="sliderWrapper" class="slider-wrapper">
-            <button id="prevBtn" class="nav-arrow left">←</button>
             <div id="sliderContainer" class="slider-container">
                 <div id="cardsWrapper"></div>
             </div>
-            <button id="nextBtn" class="nav-arrow right">→</button>
-            <div id="dotsContainer" class="dots-container"></div>
+            <div class="slider-controls">
+                <button id="prevBtn" class="nav-arrow">←</button>
+                <div id="progressIndicator" class="progress-indicator">1 / 1</div>
+                <button id="nextBtn" class="nav-arrow">→</button>
+            </div>
         </div>
         
         <div class="actions" id="prayerActions">
@@ -441,7 +429,7 @@
             const cardsWrapper = document.getElementById('cardsWrapper');
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
-            const dotsContainer = document.getElementById('dotsContainer');
+            const progressIndicator = document.getElementById('progressIndicator');
             const dayCounterElement = document.getElementById('dayCounter');
             const calendarGrid = document.getElementById('calendarGrid');
             const calendarMonthLabel = document.getElementById('calendarMonth');
@@ -584,10 +572,8 @@
 
             function renderCards() {
                 cardsWrapper.innerHTML = '';
-                dotsContainer.innerHTML = '';
                 
                 allCardsData.forEach((data, index) => {
-                    // Create Card
                     const cardDiv = document.createElement('div');
                     cardDiv.className = `slider-card ${index === 0 ? 'active' : ''}`;
                     
@@ -640,12 +626,6 @@
                         }
                     }
                     cardsWrapper.appendChild(cardDiv);
-
-                    // Create Dot
-                    const dot = document.createElement('div');
-                    dot.className = `dot ${index === 0 ? 'active' : ''}`;
-                    dot.onclick = () => goToCard(index);
-                    dotsContainer.appendChild(dot);
                 });
 
                 currentCardIndex = 0;
@@ -656,7 +636,6 @@
 
             function updateSliderUI() {
                 const cards = document.querySelectorAll('.slider-card');
-                const dots = document.querySelectorAll('.dot');
                 
                 cards.forEach((card, index) => {
                     card.classList.remove('active', 'prev');
@@ -664,12 +643,12 @@
                     else if (index < currentCardIndex) card.classList.add('prev');
                 });
 
-                dots.forEach((dot, index) => {
-                    dot.classList.toggle('active', index === currentCardIndex);
-                });
+                // Update progress text
+                progressIndicator.textContent = `${currentCardIndex + 1} / ${allCardsData.length}`;
 
-                prevBtn.disabled = currentCardIndex === 0;
-                nextBtn.disabled = currentCardIndex === allCardsData.length - 1;
+                // Handle arrow visibility
+                prevBtn.style.visibility = currentCardIndex === 0 ? 'hidden' : 'visible';
+                nextBtn.style.visibility = currentCardIndex === allCardsData.length - 1 ? 'hidden' : 'visible';
             }
 
             function nextCard() {
@@ -684,11 +663,6 @@
                     currentCardIndex--;
                     updateSliderUI();
                 }
-            }
-
-            function goToCard(index) {
-                currentCardIndex = index;
-                updateSliderUI();
             }
 
             nextBtn.onclick = nextCard;
