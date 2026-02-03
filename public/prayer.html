@@ -13,70 +13,137 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #f0f4f8; /* Fundo azul-acinzentado claro */
+            background-color: #f0f4f8;
             color: #333;
             padding: 20px;
             box-sizing: border-box;
         }
         .container {
             background-color: #ffffff;
-            padding: 40px;
-            border-radius: 15px; /* Cantos arredondados */
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Sombra suave */
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             max-width: 600px;
             width: 100%;
             text-align: center;
         }
         .day-counter {
-            font-size: 1.3em;
+            font-size: 1.2em;
             font-weight: 600;
-            color: #7b68ee; /* Cor do botão para o contador */
+            color: #7b68ee;
             margin-bottom: 20px;
         }
         h1 {
-            color: #4a90e2; /* Azul vibrante para o título */
-            margin-bottom: 25px;
-            font-size: 2.5em;
+            color: #4a90e2;
+            margin-bottom: 20px;
+            font-size: 2.2em;
             font-weight: 700;
         }
+        
+        /* Calendar Styles */
+        .calendar-container {
+            margin-bottom: 25px;
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        .calendar-header {
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #4a5568;
+            text-transform: capitalize;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        .calendar-day-name {
+            font-size: 0.75em;
+            font-weight: 700;
+            color: #a0aec0;
+            padding-bottom: 5px;
+        }
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            border-radius: 6px;
+            background-color: #edf2f7;
+            color: #4a5568;
+            transition: all 0.2s;
+        }
+        .calendar-day.completed {
+            background-color: #48bb78;
+            color: white;
+        }
+        .calendar-day.today {
+            border: 2px solid #4299e1;
+            font-weight: 700;
+        }
+        .calendar-legend {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 0.8em;
+            color: #718096;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .legend-box {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
         .container h2 {
-            color: #5a67d8; /* Um azul um pouco mais suave que o h1 */
+            color: #5a67d8;
             margin-top: 20px;
             margin-bottom: 15px;
-            font-size: 1.8em;
+            font-size: 1.6em;
             font-weight: 600;
         }
-        .container p { /* This will apply to the gospel text and loading message */
-            font-size: 1.1em;
+        .container p {
+            font-size: 1.05em;
             line-height: 1.6;
-            margin-bottom: 30px; /* Keep this for spacing before the button */
+            margin-bottom: 25px;
             color: #555;
         }
         button {
-            background-color: #7b68ee; /* Roxo médio para o botão */
+            background-color: #7b68ee;
             color: white;
             border: none;
             padding: 15px 30px;
-            border-radius: 30px; /* Botão em formato de pílula */
+            border-radius: 30px;
             font-size: 1.1em;
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.2s ease;
             box-shadow: 0 5px 15px rgba(123, 104, 238, 0.3);
+            width: 100%;
+            max-width: 300px;
         }
         button:hover {
-            background-color: #6a5acd; /* Roxo mais escuro ao passar o mouse */
+            background-color: #6a5acd;
             transform: translateY(-2px);
         }
         button:active {
             transform: translateY(0);
         }
         #message {
-            margin-top: 25px;
-            font-size: 1.2em;
-            color: #28a745; /* Verde para mensagem de sucesso */
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #28a745;
             font-weight: 600;
+            height: 24px;
             opacity: 0;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.3s ease;
         }
         #message.show {
             opacity: 1;
@@ -86,10 +153,33 @@
 <body>
     <div class="container">
         <div id="dayCounter" class="day-counter"></div>
+        
         <h1>Oração do Dia</h1>
+
+        <div class="calendar-container">
+            <div id="calendarMonth" class="calendar-header"></div>
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Days of week -->
+                <div class="calendar-day-name">Dom</div>
+                <div class="calendar-day-name">Seg</div>
+                <div class="calendar-day-name">Ter</div>
+                <div class="calendar-day-name">Qua</div>
+                <div class="calendar-day-name">Qui</div>
+                <div class="calendar-day-name">Sex</div>
+                <div class="calendar-day-name">Sáb</div>
+                <!-- Days will be injected here -->
+            </div>
+            <div class="calendar-legend">
+                <div class="legend-item"><div class="legend-box" style="background-color: #48bb78;"></div> Concluído</div>
+                <div class="legend-item"><div class="legend-box" style="background-color: #edf2f7;"></div> Não Concluído</div>
+                <div class="legend-item"><div class="legend-box" style="border: 2px solid #4299e1;"></div> Hoje</div>
+            </div>
+        </div>
+
         <div id="gospelContent">
             <p>Carregando o Evangelho do Dia...</p>
         </div>
+        
         <button id="markAsDone">Marcar como Concluído</button>
         <p id="message"></p>
     </div>
@@ -100,55 +190,108 @@
             const messageElement = document.getElementById('message');
             const gospelContentDiv = document.getElementById('gospelContent');
             const dayCounterElement = document.getElementById('dayCounter');
+            const calendarGrid = document.getElementById('calendarGrid');
+            const calendarMonthLabel = document.getElementById('calendarMonth');
 
-            const STORAGE_KEY_DAYS = 'prayerDaysCompleted';
+            const STORAGE_KEY_COMPLETED_LIST = 'prayerCompletedDaysList';
             const STORAGE_KEY_MONTH = 'prayerLastMonthReset';
 
-            let daysCompleted = 0;
-            let currentMonthYear = ''; // Format: YYYY-MM
+            let completedDays = [];
+            let today = new Date();
 
             function getCurrentMonthYear() {
-                const today = new Date();
                 return `${today.getFullYear()}-${today.getMonth() + 1}`;
             }
 
-            function loadCounter() {
-                currentMonthYear = getCurrentMonthYear();
+            function loadData() {
+                const currentMonthYear = getCurrentMonthYear();
                 const storedMonthYear = localStorage.getItem(STORAGE_KEY_MONTH);
-                const storedDays = parseInt(localStorage.getItem(STORAGE_KEY_DAYS) || '0', 10);
+                const storedList = JSON.parse(localStorage.getItem(STORAGE_KEY_COMPLETED_LIST) || '[]');
 
                 if (storedMonthYear !== currentMonthYear) {
-                    // New month, reset counter
-                    daysCompleted = 0;
+                    // New month, reset
+                    completedDays = [];
                     localStorage.setItem(STORAGE_KEY_MONTH, currentMonthYear);
-                    localStorage.setItem(STORAGE_KEY_DAYS, '0');
+                    localStorage.setItem(STORAGE_KEY_COMPLETED_LIST, JSON.stringify([]));
                 } else {
-                    // Same month, load stored days
-                    daysCompleted = storedDays;
+                    completedDays = storedList;
                 }
+                renderCalendar();
                 updateDayCounterDisplay();
             }
 
             function updateDayCounterDisplay() {
-                dayCounterElement.textContent = `🔥 Você completou ${daysCompleted} dias este mês`;
+                dayCounterElement.textContent = `🔥 Você completou ${completedDays.length} dias este mês`;
             }
 
-            function incrementCounter() {
-                daysCompleted++;
-                localStorage.setItem(STORAGE_KEY_DAYS, daysCompleted.toString());
-                updateDayCounterDisplay();
+            function renderCalendar() {
+                // Clear previous days (keep headers)
+                const headers = calendarGrid.querySelectorAll('.calendar-day-name');
+                calendarGrid.innerHTML = '';
+                headers.forEach(h => calendarGrid.appendChild(h));
+
+                const year = today.getFullYear();
+                const month = today.getMonth();
+                
+                // Set month label
+                const monthName = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(today);
+                calendarMonthLabel.textContent = monthName;
+
+                const firstDayOfMonth = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                // Empty slots for days of previous month
+                for (let i = 0; i < firstDayOfMonth; i++) {
+                    const emptyDiv = document.createElement('div');
+                    calendarGrid.appendChild(emptyDiv);
+                }
+
+                // Actual days
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayDiv = document.createElement('div');
+                    dayDiv.className = 'calendar-day';
+                    dayDiv.textContent = day;
+
+                    const dateString = `${year}-${month + 1}-${day}`;
+                    const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+                    
+                    if (isToday) dayDiv.classList.add('today');
+                    if (completedDays.includes(dateString)) dayDiv.classList.add('completed');
+
+                    calendarGrid.appendChild(dayDiv);
+                }
+            }
+
+            function markTodayAsDone() {
+                const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+                
+                if (!completedDays.includes(dateString)) {
+                    completedDays.push(dateString);
+                    localStorage.setItem(STORAGE_KEY_COMPLETED_LIST, JSON.stringify(completedDays));
+                    renderCalendar();
+                    updateDayCounterDisplay();
+                    
+                    messageElement.textContent = 'Concluído!';
+                    messageElement.classList.add('show');
+                    setTimeout(() => {
+                        messageElement.classList.remove('show');
+                    }, 3000);
+                } else {
+                    messageElement.textContent = 'Já concluído hoje!';
+                    messageElement.style.color = '#4a90e2';
+                    messageElement.classList.add('show');
+                    setTimeout(() => {
+                        messageElement.classList.remove('show');
+                        messageElement.style.color = '#28a745';
+                    }, 3000);
+                }
             }
 
             async function fetchAndDisplayGospel() {
-                gospelContentDiv.innerHTML = '<p>Carregando o Evangelho do Dia...</p>'; // Mensagem de carregamento
-
                 try {
                     const response = await fetch('https://liturgia.up.railway.app/');
-                    if (!response.ok) {
-                        throw new Error(`Erro HTTP! status: ${response.status}`);
-                    }
+                    if (!response.ok) throw new Error(`Erro HTTP! status: ${response.status}`);
                     const data = await response.json();
-
                     const evangelho = data.find(item => item.type === 'Evangelho');
 
                     if (evangelho) {
@@ -165,19 +308,10 @@
                 }
             }
 
-            // Chama a função para buscar e exibir o evangelho quando a página carregar
             fetchAndDisplayGospel();
-            loadCounter(); // Carrega o contador ao carregar a página
+            loadData();
 
-            // Funcionalidade existente do botão, agora com incremento do contador
-            markAsDoneButton.addEventListener('click', function() {
-                incrementCounter(); // Incrementa e salva o contador
-                messageElement.textContent = 'Concluído!';
-                messageElement.classList.add('show');
-                setTimeout(() => {
-                    messageElement.classList.remove('show');
-                }, 3000);
-            });
+            markAsDoneButton.addEventListener('click', markTodayAsDone);
         });
     </script>
 </body>
