@@ -60,19 +60,25 @@
             position: relative;
         }
 
-        .notification-btn {
+        .header-icons {
             position: absolute;
             top: 20px;
-            right: 20px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 1001;
+        }
+
+        .icon-btn {
             background: none;
             border: none;
-            font-size: 24px;
+            font-size: 22px;
             cursor: pointer;
             padding: 5px;
-            z-index: 1001;
         }
         .notification-btn.active { color: var(--accent); }
         .notification-btn.inactive { color: #888; opacity: 0.6; }
+        .history-btn { color: white; }
 
         .notification-menu {
             position: absolute;
@@ -144,6 +150,82 @@
             margin-bottom: 40px;
             display: flex;
             flex-direction: column;
+        }
+
+        /* History View Styles */
+        #historyView {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+        }
+        .history-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .back-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .history-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0;
+        }
+        .month-item {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+        .month-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .month-name {
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: capitalize;
+        }
+        .month-stats {
+            font-size: 0.85em;
+            color: var(--text-muted);
+        }
+        .progress-container {
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--success);
+        }
+        .percentage-text {
+            font-size: 0.85em;
+            font-weight: 700;
+            color: var(--success);
+            margin-left: 10px;
+        }
+
+        /* Detail View */
+        #historyDetailView {
+            display: none;
+            width: 100%;
         }
 
         .card {
@@ -432,7 +514,11 @@
     <div class="liturgical-bar" id="liturgicalBar"></div>
 
     <header class="app-header">
-        <button id="notificationBtn" class="notification-btn inactive">🔕</button>
+        <div class="header-icons">
+            <button id="historyBtn" class="icon-btn history-btn">📅</button>
+            <button id="notificationBtn" class="icon-btn notification-btn inactive">🔕</button>
+        </div>
+        
         <div id="notificationMenu" class="notification-menu">
             <h3>Lembretes</h3>
             <div class="menu-row">
@@ -457,7 +543,8 @@
         <p>Oração Diária</p>
     </header>
 
-    <div class="main-container">
+    <!-- Main View -->
+    <div id="mainView" class="main-container">
         <div class="card">
             <div id="dayCounter" class="day-counter"></div>
             <div class="calendar-container">
@@ -498,8 +585,43 @@
         <p id="message"></p>
     </div>
 
+    <!-- History View -->
+    <div id="historyView">
+        <div class="history-header">
+            <button id="backToMain" class="back-btn">← Voltar</button>
+            <h2 class="history-title">Histórico</h2>
+        </div>
+        
+        <div id="historyList">
+            <!-- Months will be injected here -->
+        </div>
+
+        <div id="historyDetailView">
+            <div class="card">
+                <div class="calendar-container">
+                    <div id="detailMonthLabel" class="calendar-header"></div>
+                    <div class="calendar-grid" id="detailCalendarGrid">
+                        <div class="calendar-day-name">Dom</div>
+                        <div class="calendar-day-name">Seg</div>
+                        <div class="calendar-day-name">Ter</div>
+                        <div class="calendar-day-name">Qua</div>
+                        <div class="calendar-day-name">Qui</div>
+                        <div class="calendar-day-name">Sex</div>
+                        <div class="calendar-day-name">Sáb</div>
+                    </div>
+                </div>
+            </div>
+            <button id="backToHistoryList" class="btn btn-secondary">Voltar para Lista</button>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const mainView = document.getElementById('mainView');
+            const historyView = document.getElementById('historyView');
+            const historyList = document.getElementById('historyList');
+            const historyDetailView = document.getElementById('historyDetailView');
+            
             const markAsDoneButton = document.getElementById('markAsDone');
             const shareBtn = document.getElementById('shareBtn');
             const messageElement = document.getElementById('message');
@@ -515,6 +637,13 @@
             const methodBtns = document.querySelectorAll('.method-btn');
             const prayerActions = document.getElementById('prayerActions');
 
+            // History Elements
+            const historyBtn = document.getElementById('historyBtn');
+            const backToMain = document.getElementById('backToMain');
+            const backToHistoryList = document.getElementById('backToHistoryList');
+            const detailMonthLabel = document.getElementById('detailMonthLabel');
+            const detailCalendarGrid = document.getElementById('detailCalendarGrid');
+
             // Notification Elements
             const notificationBtn = document.getElementById('notificationBtn');
             const notificationMenu = document.getElementById('notificationMenu');
@@ -523,7 +652,6 @@
             const saveNotif = document.getElementById('saveNotif');
 
             const STORAGE_KEY_COMPLETED = 'prayerCompletedDaysList';
-            const STORAGE_KEY_MONTH = 'prayerLastMonthReset';
             const STORAGE_KEY_NOTIF = 'prayerNotificationSettings';
             const STORAGE_KEY_LAST_NOTIF = 'prayerLastNotificationSent';
 
@@ -555,41 +683,30 @@
             }
 
             function loadData() {
-                const currentMonthYear = `${today.getFullYear()}-${today.getMonth() + 1}`;
-                const storedMonthYear = localStorage.getItem(STORAGE_KEY_MONTH);
-                const storedList = JSON.parse(localStorage.getItem(STORAGE_KEY_COMPLETED) || '[]');
-
-                if (storedMonthYear !== currentMonthYear) {
-                    completedDays = [];
-                    localStorage.setItem(STORAGE_KEY_MONTH, currentMonthYear);
-                    localStorage.setItem(STORAGE_KEY_COMPLETED, JSON.stringify([]));
-                } else {
-                    completedDays = storedList;
-                }
-
-                renderCalendar();
+                completedDays = JSON.parse(localStorage.getItem(STORAGE_KEY_COMPLETED) || '[]');
+                renderCalendar(today.getMonth(), today.getFullYear(), calendarGrid, calendarMonthLabel);
                 updateDayCounterDisplay();
                 loadNotificationSettings();
             }
 
             function updateDayCounterDisplay() {
-                dayCounterElement.textContent = `🔥 ${completedDays.length} dias de oração este mês`;
+                const currentMonthDays = completedDays.filter(d => d.startsWith(`${today.getFullYear()}-${today.getMonth() + 1}-`));
+                dayCounterElement.textContent = `🔥 ${currentMonthDays.length} dias de oração este mês`;
             }
 
-            function renderCalendar() {
-                const headers = calendarGrid.querySelectorAll('.calendar-day-name');
-                calendarGrid.innerHTML = '';
-                headers.forEach(h => calendarGrid.appendChild(h));
+            function renderCalendar(month, year, grid, label) {
+                const headers = grid.querySelectorAll('.calendar-day-name');
+                grid.innerHTML = '';
+                headers.forEach(h => grid.appendChild(h));
 
-                const year = today.getFullYear();
-                const month = today.getMonth();
-                const monthName = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(today);
-                calendarMonthLabel.textContent = monthName;
+                const date = new Date(year, month, 1);
+                const monthName = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(date);
+                label.textContent = monthName;
 
                 const firstDay = new Date(year, month, 1).getDay();
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-                for (let i = 0; i < firstDay; i++) calendarGrid.appendChild(document.createElement('div'));
+                for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
 
                 for (let day = 1; day <= daysInMonth; day++) {
                     const dayDiv = document.createElement('div');
@@ -597,12 +714,77 @@
                     dayDiv.textContent = day;
 
                     const dateString = `${year}-${month + 1}-${day}`;
-                    if (day === today.getDate() && month === today.getMonth()) dayDiv.classList.add('today');
+                    if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) dayDiv.classList.add('today');
                     if (completedDays.includes(dateString)) dayDiv.classList.add('completed');
 
-                    calendarGrid.appendChild(dayDiv);
+                    grid.appendChild(dayDiv);
                 }
             }
+
+            // History Logic
+            function renderHistoryList() {
+                historyList.innerHTML = '';
+                historyDetailView.style.display = 'none';
+                historyList.style.display = 'block';
+
+                const monthsToShow = 6;
+                const currentMonth = today.getMonth();
+                const currentYear = today.getFullYear();
+
+                for (let i = 0; i < monthsToShow; i++) {
+                    let m = currentMonth - i;
+                    let y = currentYear;
+                    if (m < 0) {
+                        m += 12;
+                        y -= 1;
+                    }
+
+                    const date = new Date(y, m, 1);
+                    const monthName = new Intl.DateTimeFormat('pt-BR', { month: 'long' }).format(date);
+                    const daysInMonth = new Date(y, m + 1, 0).getDate();
+                    
+                    const monthPrefix = `${y}-${m + 1}-`;
+                    const completedInMonth = completedDays.filter(d => d.startsWith(monthPrefix)).length;
+                    const percentage = Math.round((completedInMonth / daysInMonth) * 100);
+
+                    const monthItem = document.createElement('div');
+                    monthItem.className = 'month-item';
+                    monthItem.innerHTML = `
+                        <div class="month-info">
+                            <span class="month-name">${monthName} ${y}</span>
+                            <span class="month-stats">${completedInMonth} de ${daysInMonth} dias</span>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-bar" style="width: ${percentage}%"></div>
+                            <span class="percentage-text">${percentage}%</span>
+                        </div>
+                    `;
+                    monthItem.onclick = () => showHistoryDetail(m, y);
+                    historyList.appendChild(monthItem);
+                }
+            }
+
+            function showHistoryDetail(m, y) {
+                historyList.style.display = 'none';
+                historyDetailView.style.display = 'block';
+                renderCalendar(m, y, detailCalendarGrid, detailMonthLabel);
+            }
+
+            historyBtn.onclick = () => {
+                mainView.style.display = 'none';
+                historyView.style.display = 'block';
+                renderHistoryList();
+            };
+
+            backToMain.onclick = () => {
+                historyView.style.display = 'none';
+                mainView.style.display = 'block';
+            };
+
+            backToHistoryList.onclick = () => {
+                historyDetailView.style.display = 'none';
+                historyList.style.display = 'block';
+            };
 
             async function fetchLiturgia() {
                 try {
@@ -787,7 +969,7 @@
                 if (!completedDays.includes(dateKey)) {
                     completedDays.push(dateKey);
                     localStorage.setItem(STORAGE_KEY_COMPLETED, JSON.stringify(completedDays));
-                    renderCalendar();
+                    renderCalendar(today.getMonth(), today.getFullYear(), calendarGrid, calendarMonthLabel);
                     updateDayCounterDisplay();
                     messageElement.textContent = 'Glória a Deus! Concluído.';
                     messageElement.classList.add('show');
@@ -857,7 +1039,6 @@
                 const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
                 const dateKey = getCurrentDateKey();
 
-                // Check if it's time, if not already completed today, and if not already notified today
                 if (currentTime === settings.time && !completedDays.includes(dateKey)) {
                     const lastNotif = localStorage.getItem(STORAGE_KEY_LAST_NOTIF);
                     if (lastNotif !== dateKey) {
@@ -872,7 +1053,6 @@
                 }
             }
 
-            // Check every minute
             setInterval(checkAndNotify, 60000);
 
             loadData();
