@@ -115,6 +115,33 @@
             color: var(--today-border);
         }
 
+        /* Method Selector */
+        .method-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 30px;
+            background: #f1f5f9;
+            padding: 6px;
+            border-radius: 16px;
+        }
+        .method-btn {
+            flex: 1;
+            padding: 12px 8px;
+            border-radius: 12px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .method-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
         /* Content Sections */
         .section {
             text-align: left;
@@ -151,6 +178,41 @@
             line-height: 1.8;
             color: #4a5568;
             font-size: 1.05em;
+        }
+
+        /* Guided Steps */
+        .guided-container {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 20px;
+            text-align: left;
+            border: 2px solid #e2e8f0;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .step-indicator {
+            font-size: 0.75em;
+            font-weight: 800;
+            color: var(--primary);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .step-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #1e293b;
+        }
+        .timer-display {
+            font-size: 2em;
+            font-weight: 800;
+            color: var(--primary);
+            text-align: center;
+            margin: 20px 0;
+            font-variant-numeric: tabular-nums;
         }
 
         /* Reflection Area */
@@ -218,6 +280,15 @@
         .btn-secondary:hover {
             background-color: #edf2f7;
         }
+        .btn-step {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            width: auto;
+            margin-top: 10px;
+        }
 
         #message {
             margin-top: 15px;
@@ -238,6 +309,7 @@
         @media (max-width: 480px) {
             .container { padding: 30px 20px; }
             h1 { font-size: 1.8em; }
+            .method-selector { flex-direction: column; }
         }
     </style>
 </head>
@@ -261,11 +333,19 @@
             </div>
         </div>
 
+        <div class="method-selector">
+            <button class="method-btn active" data-method="simples">Liturgia Simples</button>
+            <button class="method-btn" data-method="lectio">Lectio Divina</button>
+            <button class="method-btn" data-method="rapido">Método Rápido</button>
+        </div>
+
         <div id="mainContent">
             <div class="loading-spinner">Preparando a liturgia de hoje...</div>
         </div>
 
-        <div class="reflection-container">
+        <div id="guidedSteps"></div>
+
+        <div class="reflection-container" id="defaultReflection">
             <label for="reflection">Minha Reflexão</label>
             <textarea id="reflection" placeholder="O que Deus falou ao seu coração hoje?"></textarea>
         </div>
@@ -283,11 +363,14 @@
             const shareBtn = document.getElementById('shareBtn');
             const messageElement = document.getElementById('message');
             const mainContent = document.getElementById('mainContent');
+            const guidedStepsContainer = document.getElementById('guidedSteps');
             const dayCounterElement = document.getElementById('dayCounter');
             const calendarGrid = document.getElementById('calendarGrid');
             const calendarMonthLabel = document.getElementById('calendarMonth');
             const reflectionTextarea = document.getElementById('reflection');
             const liturgicalBar = document.getElementById('liturgicalBar');
+            const methodBtns = document.querySelectorAll('.method-btn');
+            const defaultReflection = document.getElementById('defaultReflection');
 
             const STORAGE_KEY_COMPLETED = 'prayerCompletedDaysList';
             const STORAGE_KEY_MONTH = 'prayerLastMonthReset';
@@ -296,6 +379,9 @@
             let completedDays = [];
             let today = new Date();
             let currentGospel = "";
+            let currentMethod = 'simples';
+            let currentStep = 0;
+            let timerInterval = null;
 
             function getCurrentDateKey() {
                 return `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -314,7 +400,6 @@
                     completedDays = storedList;
                 }
 
-                // Load reflection
                 const savedReflection = localStorage.getItem(STORAGE_KEY_REFLECTION + getCurrentDateKey());
                 if (savedReflection) reflectionTextarea.value = savedReflection;
 
@@ -360,54 +445,131 @@
                     if (!response.ok) throw new Error('Erro na API');
                     const data = await response.json();
 
-                    // Set liturgical color
                     const colors = { 'Verde': '#48bb78', 'Roxo': '#805ad5', 'Branco': '#edf2f7', 'Vermelho': '#e53e3e' };
                     liturgicalBar.style.backgroundColor = colors[data.cor] || '#7b68ee';
 
                     let html = '';
-                    
-                    // Primeira Leitura
                     if (data.primeiraLeitura) {
-                        html += `
-                            <div class="section">
-                                <span class="section-tag">1ª Leitura</span>
-                                <h2>${data.primeiraLeitura.titulo}</h2>
-                                <span class="reference">${data.primeiraLeitura.referencia}</span>
-                                <div class="content-text">${data.primeiraLeitura.texto.replace(/\n/g, '<br>')}</div>
-                            </div>
-                        `;
+                        html += `<div class="section"><span class="section-tag">1ª Leitura</span><h2>${data.primeiraLeitura.titulo}</h2><span class="reference">${data.primeiraLeitura.referencia}</span><div class="content-text">${data.primeiraLeitura.texto.replace(/\n/g, '<br>')}</div></div>`;
                     }
-
-                    // Salmo
                     if (data.salmo) {
-                        html += `
-                            <div class="section">
-                                <span class="section-tag">Salmo Responsorial</span>
-                                <h2>${data.salmo.titulo}</h2>
-                                <span class="reference">${data.salmo.referencia}</span>
-                                <div class="content-text">${data.salmo.texto.replace(/\n/g, '<br>')}</div>
-                            </div>
-                        `;
+                        html += `<div class="section"><span class="section-tag">Salmo Responsorial</span><h2>${data.salmo.titulo}</h2><span class="reference">${data.salmo.referencia}</span><div class="content-text">${data.salmo.texto.replace(/\n/g, '<br>')}</div></div>`;
                     }
-
-                    // Evangelho
                     if (data.evangelho) {
                         currentGospel = `*${data.evangelho.titulo}*\n_${data.evangelho.referencia}_\n\n${data.evangelho.texto}`;
-                        html += `
-                            <div class="section">
-                                <span class="section-tag">Evangelho</span>
-                                <h2>${data.evangelho.titulo}</h2>
-                                <span class="reference">${data.evangelho.referencia}</span>
-                                <div class="content-text">${data.evangelho.texto.replace(/\n/g, '<br>')}</div>
-                            </div>
-                        `;
+                        html += `<div class="section"><span class="section-tag">Evangelho</span><h2>${data.evangelho.titulo}</h2><span class="reference">${data.evangelho.referencia}</span><div class="content-text">${data.evangelho.texto.replace(/\n/g, '<br>')}</div></div>`;
                     }
 
                     mainContent.innerHTML = html;
+                    renderSteps();
                 } catch (error) {
                     mainContent.innerHTML = '<div class="error-container"><p>Erro ao carregar liturgia. Tente novamente.</p></div>';
                 }
             }
+
+            function renderSteps() {
+                guidedStepsContainer.innerHTML = '';
+                if (timerInterval) clearInterval(timerInterval);
+
+                if (currentMethod === 'simples') {
+                    defaultReflection.style.display = 'block';
+                    return;
+                }
+
+                defaultReflection.style.display = 'none';
+                const container = document.createElement('div');
+                container.className = 'guided-container';
+
+                if (currentMethod === 'lectio') {
+                    const steps = [
+                        { title: '1. LEITURA', desc: 'Leia o evangelho devagar, palavra por palavra.', btn: 'Já li, próximo passo →' },
+                        { title: '2. MEDITAÇÃO', desc: 'O que este texto diz? O que significa para você?', input: true, btn: 'Próximo passo →' },
+                        { title: '3. ORAÇÃO', desc: 'Eleva uma oração ao Senhor baseada no que você leu.', input: true, btn: 'Próximo passo →' },
+                        { title: '4. CONTEMPLAÇÃO', desc: 'Fique em silêncio por 2 minutos, ouvindo a Deus.', timer: 120, btn: 'Concluir →' }
+                    ];
+                    renderStepContent(container, steps);
+                } else if (currentMethod === 'rapido') {
+                    const steps = [
+                        { title: 'PASSO 1', desc: 'O que este texto diz?', input: true, btn: 'Próximo →' },
+                        { title: 'PASSO 2', desc: 'O que Deus pede de mim através deste texto?', input: true, btn: 'Próximo →' },
+                        { title: 'PASSO 3', desc: 'O que vou viver hoje por conta disto?', input: true, btn: 'Concluir →' }
+                    ];
+                    renderStepContent(container, steps);
+                }
+
+                guidedStepsContainer.appendChild(container);
+            }
+
+            function renderStepContent(container, steps) {
+                const step = steps[currentStep];
+                if (!step) return;
+
+                container.innerHTML = `
+                    <span class="step-indicator">Passo ${currentStep + 1} de ${steps.length}</span>
+                    <div class="step-title">${step.title}</div>
+                    <p class="content-text">${step.desc}</p>
+                `;
+
+                if (step.input) {
+                    const textarea = document.createElement('textarea');
+                    textarea.placeholder = "Escreva aqui...";
+                    container.appendChild(textarea);
+                }
+
+                if (step.timer) {
+                    const timerDiv = document.createElement('div');
+                    timerDiv.className = 'timer-display';
+                    timerDiv.textContent = '02:00';
+                    container.appendChild(timerDiv);
+
+                    const startBtn = document.createElement('button');
+                    startBtn.className = 'btn btn-secondary';
+                    startBtn.style.marginBottom = '10px';
+                    startBtn.textContent = 'Iniciar Silêncio';
+                    startBtn.onclick = () => startTimer(timerDiv, step.timer);
+                    container.appendChild(startBtn);
+                }
+
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'btn btn-step';
+                nextBtn.textContent = step.btn;
+                nextBtn.onclick = () => {
+                    if (currentStep < steps.length - 1) {
+                        currentStep++;
+                        renderSteps();
+                        window.scrollTo({ top: guidedStepsContainer.offsetTop - 100, behavior: 'smooth' });
+                    } else {
+                        markAsDoneButton.click();
+                    }
+                };
+                container.appendChild(nextBtn);
+            }
+
+            function startTimer(display, duration) {
+                let timer = duration, minutes, seconds;
+                if (timerInterval) clearInterval(timerInterval);
+                timerInterval = setInterval(() => {
+                    minutes = parseInt(timer / 60, 10);
+                    seconds = parseInt(timer % 60, 10);
+                    minutes = minutes < 10 ? "0" + minutes : minutes;
+                    seconds = seconds < 10 ? "0" + seconds : seconds;
+                    display.textContent = minutes + ":" + seconds;
+                    if (--timer < 0) {
+                        clearInterval(timerInterval);
+                        display.textContent = "Amém!";
+                    }
+                }, 1000);
+            }
+
+            methodBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    methodBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentMethod = btn.dataset.method;
+                    currentStep = 0;
+                    renderSteps();
+                });
+            });
 
             markAsDoneButton.addEventListener('click', () => {
                 const dateKey = getCurrentDateKey();
@@ -428,14 +590,10 @@
 
             shareBtn.addEventListener('click', () => {
                 if (navigator.share) {
-                    navigator.share({
-                        title: 'Evangelho do Dia',
-                        text: currentGospel,
-                        url: window.location.href
-                    });
+                    navigator.share({ title: 'Evangelho do Dia', text: currentGospel, url: window.location.href });
                 } else {
                     navigator.clipboard.writeText(currentGospel);
-                    alert('Evangelho copiado para a área de transferência!');
+                    alert('Evangelho copiado!');
                 }
             });
 
