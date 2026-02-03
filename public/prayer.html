@@ -82,7 +82,7 @@
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             padding: 20px;
-            width: 240px;
+            width: 260px;
             display: none;
             z-index: 1002;
             text-align: left;
@@ -101,7 +101,21 @@
         input:checked + .slider { background-color: var(--accent); }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        select { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border); font-family: inherit; margin-bottom: 15px; }
+        .time-input-container { margin-bottom: 20px; }
+        .time-input-label { font-size: 0.85em; font-weight: 700; display: block; margin-bottom: 8px; color: var(--primary); }
+        input[type="time"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+            font-family: inherit;
+            font-size: 1.1em;
+            color: var(--primary);
+            background: white;
+            cursor: pointer;
+            outline: none;
+        }
+        .time-input-helper { font-size: 0.75em; color: var(--text-muted); margin-top: 6px; display: block; line-height: 1.3; }
 
         .app-header .cross {
             font-size: 24px;
@@ -428,25 +442,13 @@
                     <span class="slider"></span>
                 </label>
             </div>
-            <label style="font-size: 0.8em; font-weight: 700; display: block; margin-bottom: 5px;">Horário</label>
-            <select id="notifTime">
-                <optgroup label="Manhã">
-                    <option value="06:00">06:00</option>
-                    <option value="07:00">07:00</option>
-                    <option value="08:00">08:00</option>
-                </optgroup>
-                <optgroup label="Tarde">
-                    <option value="12:00">12:00</option>
-                    <option value="13:00">13:00</option>
-                    <option value="14:00">14:00</option>
-                </optgroup>
-                <optgroup label="Noite">
-                    <option value="18:00">18:00</option>
-                    <option value="19:00">19:00</option>
-                    <option value="20:00">20:00</option>
-                    <option value="21:00">21:00</option>
-                </optgroup>
-            </select>
+            
+            <div class="time-input-container">
+                <label class="time-input-label">Horário do lembrete</label>
+                <input type="time" id="notifTime">
+                <span class="time-input-helper">Escolha o horário que funciona melhor para você</span>
+            </div>
+
             <button id="saveNotif" class="btn btn-primary" style="padding: 10px; font-size: 0.8em;">Salvar</button>
         </div>
 
