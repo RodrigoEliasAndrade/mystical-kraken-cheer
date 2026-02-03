@@ -37,6 +37,7 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .liturgical-bar {
@@ -83,6 +84,8 @@
             width: 100%;
             padding: 20px;
             margin-bottom: 40px;
+            display: flex;
+            flex-direction: column;
         }
 
         .card {
@@ -173,56 +176,67 @@
             color: white;
         }
 
-        /* Gospel Content */
-        .gospel-section {
-            text-align: left;
-            animation: fadeIn 0.5s ease;
+        /* Swipeable Cards */
+        .slider-container {
+            position: relative;
+            width: 100%;
+            min-height: 400px;
+            display: none;
+            perspective: 1000px;
         }
-        .gospel-section h2 {
-            font-size: 1.8em;
-            font-weight: 700;
-            color: var(--primary);
-            margin: 0 0 10px 0;
-            line-height: 1.2;
+        .slider-card {
+            position: absolute;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 35px 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            min-height: 380px;
+            opacity: 0;
+            transform: translateX(100%) scale(0.9);
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .gospel-section .reference {
-            font-style: italic;
-            color: var(--accent);
-            font-weight: 700;
-            margin-bottom: 20px;
-            display: block;
-            font-size: 1.1em;
+        .slider-card.active {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+            pointer-events: auto;
+            z-index: 10;
         }
-        .gospel-section .content-text {
-            line-height: 2;
-            color: var(--text);
-            font-size: 1.15em;
-            text-align: justify;
+        .slider-card.prev {
+            opacity: 0;
+            transform: translateX(-100%) scale(0.9);
         }
 
-        /* Guided Steps */
-        .step-card {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            margin-top: 20px;
-            text-align: left;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-            border: 1px solid var(--border);
-            animation: slideUp 0.4s ease;
+        .card-ref {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
+        .card-text {
+            font-size: 1.25em; /* ~20px */
+            line-height: 1.8;
+            color: var(--text);
+            text-align: justify;
+            flex-grow: 1;
+        }
+
+        /* Step Header for Method Cards */
         .step-header {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         .step-number {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             background: var(--accent);
             color: white;
             border-radius: 50%;
@@ -230,25 +244,56 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.9em;
             flex-shrink: 0;
         }
         .step-title {
-            font-size: 1.1em;
             font-weight: 700;
             color: var(--primary);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 1em;
         }
+
+        /* Navigation */
+        .slider-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 0 10px;
+        }
+        .nav-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            box-shadow: 0 4px 10px rgba(44, 62, 107, 0.2);
+        }
+        .nav-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .progress-indicator {
+            font-size: 0.85em;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        /* Timer & Input */
         .timer-display {
             font-size: 2.5em;
             font-weight: 700;
             color: var(--primary);
             text-align: center;
             margin: 20px 0;
-            font-variant-numeric: tabular-nums;
         }
-
         textarea {
             width: 100%;
             padding: 15px;
@@ -256,23 +301,18 @@
             border: 1px solid var(--border);
             font-family: inherit;
             font-size: 1em;
-            resize: vertical;
+            resize: none;
             min-height: 120px;
             margin: 15px 0;
             background: #fcfcfc;
         }
-        textarea:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1);
-        }
 
-        /* Actions */
+        /* Final Actions */
         .actions {
             display: none;
             flex-direction: column;
             gap: 12px;
-            margin-top: 30px;
+            margin-top: 20px;
         }
         .btn {
             padding: 18px;
@@ -284,29 +324,15 @@
             border: none;
             font-family: inherit;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
         .btn-primary {
             background-color: var(--accent);
             color: white;
-            box-shadow: 0 6px 15px rgba(201, 168, 76, 0.3);
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(201, 168, 76, 0.4);
         }
         .btn-secondary {
             background-color: white;
             color: var(--primary);
             border: 1.5px solid var(--primary);
-        }
-        .btn-step {
-            background-color: var(--primary);
-            color: white;
-            padding: 14px 24px;
-            border-radius: 10px;
-            width: auto;
-            margin-top: 10px;
         }
 
         #message {
@@ -356,12 +382,13 @@
             <button class="method-btn" data-method="rapido">Método Rápido</button>
         </div>
 
-        <div id="mainContent"></div>
-        <div id="guidedSteps"></div>
-
-        <div class="card" id="defaultReflection" style="display: none;">
-            <label style="font-weight: 700; color: var(--primary); display: block; margin-bottom: 10px;">Minha Reflexão</label>
-            <textarea id="reflection" placeholder="O que Deus falou ao seu coração hoje?"></textarea>
+        <div id="sliderContainer" class="slider-container">
+            <div id="cardsWrapper"></div>
+            <div class="slider-nav">
+                <button id="prevBtn" class="nav-btn">←</button>
+                <div id="progressIndicator" class="progress-indicator">Card 1 de 1</div>
+                <button id="nextBtn" class="nav-btn">→</button>
+            </div>
         </div>
         
         <div class="actions" id="prayerActions">
@@ -376,27 +403,43 @@
             const markAsDoneButton = document.getElementById('markAsDone');
             const shareBtn = document.getElementById('shareBtn');
             const messageElement = document.getElementById('message');
-            const mainContent = document.getElementById('mainContent');
-            const guidedStepsContainer = document.getElementById('guidedSteps');
+            const sliderContainer = document.getElementById('sliderContainer');
+            const cardsWrapper = document.getElementById('cardsWrapper');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const progressIndicator = document.getElementById('progressIndicator');
             const dayCounterElement = document.getElementById('dayCounter');
             const calendarGrid = document.getElementById('calendarGrid');
             const calendarMonthLabel = document.getElementById('calendarMonth');
-            const reflectionTextarea = document.getElementById('reflection');
             const liturgicalBar = document.getElementById('liturgicalBar');
             const methodBtns = document.querySelectorAll('.method-btn');
-            const defaultReflection = document.getElementById('defaultReflection');
             const prayerActions = document.getElementById('prayerActions');
 
             const STORAGE_KEY_COMPLETED = 'prayerCompletedDaysList';
             const STORAGE_KEY_MONTH = 'prayerLastMonthReset';
-            const STORAGE_KEY_REFLECTION = 'prayerReflection_';
 
             let completedDays = [];
             let today = new Date();
             let gospelData = null;
             let currentMethod = null;
-            let currentStep = 0;
+            let currentCardIndex = 0;
+            let allCardsData = [];
             let timerInterval = null;
+
+            // Swipe detection
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            function handleGesture() {
+                if (touchEndX < touchStartX - 50) nextCard();
+                if (touchEndX > touchStartX + 50) prevCard();
+            }
+
+            sliderContainer.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX);
+            sliderContainer.addEventListener('touchend', e => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleGesture();
+            });
 
             function getCurrentDateKey() {
                 return `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -414,9 +457,6 @@
                 } else {
                     completedDays = storedList;
                 }
-
-                const savedReflection = localStorage.getItem(STORAGE_KEY_REFLECTION + getCurrentDateKey());
-                if (savedReflection) reflectionTextarea.value = savedReflection;
 
                 renderCalendar();
                 updateDayCounterDisplay();
@@ -471,100 +511,132 @@
                 }
             }
 
-            function renderGospel() {
+            function splitGospelIntoChunks(text) {
+                const sentences = text.split('.').map(s => s.trim()).filter(s => s.length > 0);
+                const chunks = [];
+                for (let i = 0; i < sentences.length; i += 2) {
+                    chunks.push(sentences.slice(i, i + 2).join('. ') + '.');
+                }
+                return chunks;
+            }
+
+            function prepareCards() {
                 if (!gospelData) return;
-                mainContent.innerHTML = `
-                    <div class="card gospel-section">
-                        <span style="color: var(--accent); font-weight: 700; font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block;">Evangelho</span>
-                        <h2>${gospelData.titulo}</h2>
-                        <span class="reference">${gospelData.referencia}</span>
-                        <div class="content-text">${gospelData.texto.replace(/\n/g, '<br>')}</div>
-                    </div>
-                `;
-            }
-
-            function renderSteps() {
-                guidedStepsContainer.innerHTML = '';
-                if (timerInterval) clearInterval(timerInterval);
-
-                if (currentMethod === 'simples') {
-                    defaultReflection.style.display = 'block';
-                    prayerActions.style.display = 'flex';
-                    return;
-                }
-
-                defaultReflection.style.display = 'none';
-                prayerActions.style.display = 'none';
                 
+                const gospelChunks = splitGospelIntoChunks(gospelData.texto);
+                allCardsData = gospelChunks.map(text => ({ type: 'gospel', text }));
+
                 if (currentMethod === 'lectio') {
-                    const steps = [
-                        { title: 'LEITURA', desc: 'Leia o evangelho devagar, palavra por palavra.', btn: 'Já li, próximo passo →' },
-                        { title: 'MEDITAÇÃO', desc: 'O que este texto diz? O que significa para você?', input: true, btn: 'Próximo passo →' },
-                        { title: 'ORAÇÃO', desc: 'Eleva uma oração ao Senhor baseada no que você leu.', input: true, btn: 'Próximo passo →' },
-                        { title: 'CONTEMPLAÇÃO', desc: 'Fique em silêncio por 2 minutos, ouvindo a Deus.', timer: 120, btn: 'Concluir →' }
-                    ];
-                    renderStepContent(steps);
+                    allCardsData.push(
+                        { type: 'step', step: 1, title: 'LEITURA', text: 'Leia o evangelho devagar, palavra por palavra.' },
+                        { type: 'step', step: 2, title: 'MEDITAÇÃO', text: 'O que este texto diz? O que significa para você?', input: true },
+                        { type: 'step', step: 3, title: 'ORAÇÃO', text: 'Eleva uma oração ao Senhor baseada no que você leu.', input: true },
+                        { type: 'step', step: 4, title: 'CONTEMPLAÇÃO', text: 'Fique em silêncio por 2 minutos, ouvindo a Deus.', timer: 120 }
+                    );
                 } else if (currentMethod === 'rapido') {
-                    const steps = [
-                        { title: 'PASSO 1', desc: 'O que este texto diz?', input: true, btn: 'Próximo →' },
-                        { title: 'PASSO 2', desc: 'O que Deus pede de mim através deste texto?', input: true, btn: 'Próximo →' },
-                        { title: 'PASSO 3', desc: 'O que vou viver hoje por conta disto?', input: true, btn: 'Concluir →' }
-                    ];
-                    renderStepContent(steps);
+                    allCardsData.push(
+                        { type: 'step', step: 1, title: 'PASSO 1', text: 'O que este texto diz?', input: true },
+                        { type: 'step', step: 2, title: 'PASSO 2', text: 'O que Deus pede de mim através deste texto?', input: true },
+                        { type: 'step', step: 3, title: 'PASSO 3', text: 'O que vou viver hoje por conta disto?', input: true }
+                    );
                 }
+
+                renderCards();
             }
 
-            function renderStepContent(steps) {
-                const step = steps[currentStep];
-                if (!step) return;
-
-                const container = document.createElement('div');
-                container.className = 'step-card';
-                
-                container.innerHTML = `
-                    <div class="step-header">
-                        <div class="step-number">${currentStep + 1}</div>
-                        <div class="step-title">${step.title}</div>
-                    </div>
-                    <p class="content-text" style="font-size: 1.05em; margin-bottom: 15px;">${step.desc}</p>
-                `;
-
-                if (step.input) {
-                    const textarea = document.createElement('textarea');
-                    textarea.placeholder = "Escreva aqui sua reflexão...";
-                    container.appendChild(textarea);
-                }
-
-                if (step.timer) {
-                    const timerDiv = document.createElement('div');
-                    timerDiv.className = 'timer-display';
-                    timerDiv.textContent = '02:00';
-                    container.appendChild(timerDiv);
-
-                    const startBtn = document.createElement('button');
-                    startBtn.className = 'btn btn-secondary';
-                    startBtn.style.marginBottom = '15px';
-                    startBtn.textContent = 'Iniciar Silêncio';
-                    startBtn.onclick = () => startTimer(timerDiv, step.timer);
-                    container.appendChild(startBtn);
-                }
-
-                const nextBtn = document.createElement('button');
-                nextBtn.className = 'btn btn-step';
-                nextBtn.textContent = step.btn;
-                nextBtn.onclick = () => {
-                    if (currentStep < steps.length - 1) {
-                        currentStep++;
-                        renderSteps();
-                        window.scrollTo({ top: guidedStepsContainer.offsetTop - 50, behavior: 'smooth' });
+            function renderCards() {
+                cardsWrapper.innerHTML = '';
+                allCardsData.forEach((data, index) => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = `slider-card ${index === 0 ? 'active' : ''}`;
+                    
+                    if (data.type === 'gospel') {
+                        cardDiv.innerHTML = `
+                            <div class="card-ref">${gospelData.referencia}</div>
+                            <div class="card-text">${data.text}</div>
+                        `;
+                        // If it's the last gospel card and method is simple, add the button
+                        if (index === allCardsData.length - 1 && currentMethod === 'simples') {
+                            const btn = document.createElement('button');
+                            btn.className = 'btn btn-primary';
+                            btn.style.marginTop = '20px';
+                            btn.textContent = 'Concluir Oração';
+                            btn.onclick = () => markAsDoneButton.click();
+                            cardDiv.appendChild(btn);
+                        }
                     } else {
-                        markAsDoneButton.click();
-                        prayerActions.style.display = 'flex';
+                        cardDiv.innerHTML = `
+                            <div class="step-header">
+                                <div class="step-number">${data.step}</div>
+                                <div class="step-title">${data.title}</div>
+                            </div>
+                            <div class="card-text">${data.text}</div>
+                        `;
+                        if (data.input) {
+                            const textarea = document.createElement('textarea');
+                            textarea.placeholder = "Escreva aqui...";
+                            cardDiv.appendChild(textarea);
+                        }
+                        if (data.timer) {
+                            const timerDiv = document.createElement('div');
+                            timerDiv.className = 'timer-display';
+                            timerDiv.textContent = '02:00';
+                            cardDiv.appendChild(timerDiv);
+
+                            const startBtn = document.createElement('button');
+                            startBtn.className = 'btn btn-secondary';
+                            startBtn.textContent = 'Iniciar Silêncio';
+                            startBtn.onclick = () => startTimer(timerDiv, data.timer);
+                            cardDiv.appendChild(startBtn);
+                        }
+                        // If it's the very last card of the method
+                        if (index === allCardsData.length - 1) {
+                            const btn = document.createElement('button');
+                            btn.className = 'btn btn-primary';
+                            btn.style.marginTop = '20px';
+                            btn.textContent = 'Concluir Oração';
+                            btn.onclick = () => markAsDoneButton.click();
+                            cardDiv.appendChild(btn);
+                        }
                     }
-                };
-                container.appendChild(nextBtn);
-                guidedStepsContainer.appendChild(container);
+                    cardsWrapper.appendChild(cardDiv);
+                });
+
+                currentCardIndex = 0;
+                updateSliderUI();
+                sliderContainer.style.display = 'block';
+                prayerActions.style.display = 'flex';
             }
+
+            function updateSliderUI() {
+                const cards = document.querySelectorAll('.slider-card');
+                cards.forEach((card, index) => {
+                    card.classList.remove('active', 'prev');
+                    if (index === currentCardIndex) card.classList.add('active');
+                    else if (index < currentCardIndex) card.classList.add('prev');
+                });
+
+                prevBtn.disabled = currentCardIndex === 0;
+                nextBtn.disabled = currentCardIndex === allCardsData.length - 1;
+                progressIndicator.textContent = `Card ${currentCardIndex + 1} de ${allCardsData.length}`;
+            }
+
+            function nextCard() {
+                if (currentCardIndex < allCardsData.length - 1) {
+                    currentCardIndex++;
+                    updateSliderUI();
+                }
+            }
+
+            function prevCard() {
+                if (currentCardIndex > 0) {
+                    currentCardIndex--;
+                    updateSliderUI();
+                }
+            }
+
+            nextBtn.onclick = nextCard;
+            prevBtn.onclick = prevCard;
 
             function startTimer(display, duration) {
                 let timer = duration, minutes, seconds;
@@ -587,10 +659,8 @@
                     methodBtns.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     currentMethod = btn.dataset.method;
-                    currentStep = 0;
-                    renderGospel();
-                    renderSteps();
-                    window.scrollTo({ top: mainContent.offsetTop - 20, behavior: 'smooth' });
+                    prepareCards();
+                    window.scrollTo({ top: sliderContainer.offsetTop - 20, behavior: 'smooth' });
                 });
             });
 
@@ -605,10 +675,6 @@
                     messageElement.classList.add('show');
                     setTimeout(() => messageElement.classList.remove('show'), 3000);
                 }
-            });
-
-            reflectionTextarea.addEventListener('input', (e) => {
-                localStorage.setItem(STORAGE_KEY_REFLECTION + getCurrentDateKey(), e.target.value);
             });
 
             shareBtn.addEventListener('click', () => {
