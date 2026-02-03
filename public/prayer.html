@@ -219,6 +219,7 @@
         .reflection-container {
             margin-top: 30px;
             text-align: left;
+            display: none;
         }
         .reflection-container label {
             display: block;
@@ -246,7 +247,7 @@
 
         /* Buttons */
         .actions {
-            display: flex;
+            display: none;
             flex-direction: column;
             gap: 12px;
             align-items: center;
@@ -334,14 +335,12 @@
         </div>
 
         <div class="method-selector">
-            <button class="method-btn active" data-method="simples">Liturgia Simples</button>
+            <button class="method-btn" data-method="simples">Liturgia Simples</button>
             <button class="method-btn" data-method="lectio">Lectio Divina</button>
             <button class="method-btn" data-method="rapido">Método Rápido</button>
         </div>
 
-        <div id="mainContent">
-            <div class="loading-spinner">Preparando a liturgia de hoje...</div>
-        </div>
+        <div id="mainContent"></div>
 
         <div id="guidedSteps"></div>
 
@@ -350,7 +349,7 @@
             <textarea id="reflection" placeholder="O que Deus falou ao seu coração hoje?"></textarea>
         </div>
         
-        <div class="actions">
+        <div class="actions" id="prayerActions">
             <button id="markAsDone" class="btn btn-primary">Marcar como Concluído</button>
             <button id="shareBtn" class="btn btn-secondary">Compartilhar Evangelho</button>
         </div>
@@ -371,6 +370,7 @@
             const liturgicalBar = document.getElementById('liturgicalBar');
             const methodBtns = document.querySelectorAll('.method-btn');
             const defaultReflection = document.getElementById('defaultReflection');
+            const prayerActions = document.getElementById('prayerActions');
 
             const STORAGE_KEY_COMPLETED = 'prayerCompletedDaysList';
             const STORAGE_KEY_MONTH = 'prayerLastMonthReset';
@@ -378,8 +378,8 @@
 
             let completedDays = [];
             let today = new Date();
-            let currentGospel = "";
-            let currentMethod = 'simples';
+            let gospelData = null;
+            let currentMethod = null;
             let currentStep = 0;
             let timerInterval = null;
 
@@ -448,23 +448,24 @@
                     const colors = { 'Verde': '#48bb78', 'Roxo': '#805ad5', 'Branco': '#edf2f7', 'Vermelho': '#e53e3e' };
                     liturgicalBar.style.backgroundColor = colors[data.cor] || '#7b68ee';
 
-                    let html = '';
-                    if (data.primeiraLeitura) {
-                        html += `<div class="section"><span class="section-tag">1ª Leitura</span><h2>${data.primeiraLeitura.titulo}</h2><span class="reference">${data.primeiraLeitura.referencia}</span><div class="content-text">${data.primeiraLeitura.texto.replace(/\n/g, '<br>')}</div></div>`;
-                    }
-                    if (data.salmo) {
-                        html += `<div class="section"><span class="section-tag">Salmo Responsorial</span><h2>${data.salmo.titulo}</h2><span class="reference">${data.salmo.referencia}</span><div class="content-text">${data.salmo.texto.replace(/\n/g, '<br>')}</div></div>`;
-                    }
                     if (data.evangelho) {
-                        currentGospel = `*${data.evangelho.titulo}*\n_${data.evangelho.referencia}_\n\n${data.evangelho.texto}`;
-                        html += `<div class="section"><span class="section-tag">Evangelho</span><h2>${data.evangelho.titulo}</h2><span class="reference">${data.evangelho.referencia}</span><div class="content-text">${data.evangelho.texto.replace(/\n/g, '<br>')}</div></div>`;
+                        gospelData = data.evangelho;
                     }
-
-                    mainContent.innerHTML = html;
-                    renderSteps();
                 } catch (error) {
-                    mainContent.innerHTML = '<div class="error-container"><p>Erro ao carregar liturgia. Tente novamente.</p></div>';
+                    console.error("Erro ao buscar liturgia:", error);
                 }
+            }
+
+            function renderGospel() {
+                if (!gospelData) return;
+                mainContent.innerHTML = `
+                    <div class="section">
+                        <span class="section-tag">Evangelho</span>
+                        <h2>${gospelData.titulo}</h2>
+                        <span class="reference">${gospelData.referencia}</span>
+                        <div class="content-text">${gospelData.texto.replace(/\n/g, '<br>')}</div>
+                    </div>
+                `;
             }
 
             function renderSteps() {
@@ -473,10 +474,12 @@
 
                 if (currentMethod === 'simples') {
                     defaultReflection.style.display = 'block';
+                    prayerActions.style.display = 'flex';
                     return;
                 }
 
                 defaultReflection.style.display = 'none';
+                prayerActions.style.display = 'none';
                 const container = document.createElement('div');
                 container.className = 'guided-container';
 
@@ -540,6 +543,7 @@
                         window.scrollTo({ top: guidedStepsContainer.offsetTop - 100, behavior: 'smooth' });
                     } else {
                         markAsDoneButton.click();
+                        prayerActions.style.display = 'flex';
                     }
                 };
                 container.appendChild(nextBtn);
@@ -567,7 +571,9 @@
                     btn.classList.add('active');
                     currentMethod = btn.dataset.method;
                     currentStep = 0;
+                    renderGospel();
                     renderSteps();
+                    window.scrollTo({ top: mainContent.offsetTop - 50, behavior: 'smooth' });
                 });
             });
 
@@ -589,10 +595,12 @@
             });
 
             shareBtn.addEventListener('click', () => {
-                if (navigator.share) {
-                    navigator.share({ title: 'Evangelho do Dia', text: currentGospel, url: window.location.href });
-                } else {
-                    navigator.clipboard.writeText(currentGospel);
+                if (navigator.share && gospelData) {
+                    const text = `*${gospelData.titulo}*\n_${gospelData.referencia}_\n\n${gospelData.texto}`;
+                    navigator.share({ title: 'Evangelho do Dia', text: text, url: window.location.href });
+                } else if (gospelData) {
+                    const text = `*${gospelData.titulo}*\n_${gospelData.referencia}_\n\n${gospelData.texto}`;
+                    navigator.clipboard.writeText(text);
                     alert('Evangelho copiado!');
                 }
             });
