@@ -176,58 +176,104 @@
             color: white;
         }
 
-        /* Swipeable Cards */
+        /* Slider Wrapper & Arrows */
+        .slider-wrapper {
+            position: relative;
+            width: 100%;
+            display: none;
+            margin-bottom: 20px;
+        }
         .slider-container {
             position: relative;
             width: 100%;
-            min-height: 400px;
-            display: none;
+            min-height: 420px;
             perspective: 1000px;
         }
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            opacity: 0.8;
+        }
+        .nav-arrow:hover { opacity: 1; transform: translateY(-50%) scale(1.1); }
+        .nav-arrow.left { left: -20px; }
+        .nav-arrow.right { right: -20px; }
+        .nav-arrow:disabled { display: none; }
+
+        /* Slider Cards */
         .slider-card {
             position: absolute;
             width: 100%;
             background: white;
-            border-radius: 20px;
-            padding: 35px 25px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+            border-radius: 24px;
+            padding: 35px 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            min-height: 380px;
+            min-height: 400px;
             opacity: 0;
-            transform: translateX(100%) scale(0.9);
+            transform: translateX(100%);
             pointer-events: none;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .slider-card:hover {
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
         }
         .slider-card.active {
             opacity: 1;
-            transform: translateX(0) scale(1);
+            transform: translateX(0);
             pointer-events: auto;
             z-index: 10;
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            animation: glow 2s infinite alternate;
+        }
+        @keyframes glow {
+            from { border-color: rgba(201, 168, 76, 0.2); }
+            to { border-color: rgba(201, 168, 76, 0.5); box-shadow: 0 10px 30px rgba(201, 168, 76, 0.1); }
         }
         .slider-card.prev {
             opacity: 0;
-            transform: translateX(-100%) scale(0.9);
+            transform: translateX(-100%);
         }
 
+        .card-title {
+            font-size: 1.375em; /* 22px */
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
         .card-ref {
             color: var(--accent);
             font-weight: 700;
-            font-size: 0.9em;
+            font-size: 1em; /* 16px */
             margin-bottom: 20px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
         .card-text {
-            font-size: 1.25em; /* ~20px */
+            font-size: 1.25em; /* 20px */
             line-height: 1.8;
             color: var(--text);
             text-align: justify;
             flex-grow: 1;
         }
 
-        /* Step Header for Method Cards */
+        /* Step Header */
         .step-header {
             display: flex;
             align-items: center;
@@ -253,37 +299,23 @@
             font-size: 1em;
         }
 
-        /* Navigation */
-        .slider-nav {
+        /* Progress Dots */
+        .dots-container {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-            padding: 0 10px;
-        }
-        .nav-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 1.2em;
-            box-shadow: 0 4px 10px rgba(44, 62, 107, 0.2);
+            gap: 8px;
+            margin-top: 15px;
         }
-        .nav-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            box-shadow: none;
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ddd;
+            transition: all 0.3s;
         }
-        .progress-indicator {
-            font-size: 0.85em;
-            font-weight: 700;
-            color: var(--text-muted);
+        .dot.active {
+            background: var(--accent);
+            transform: scale(1.2);
         }
 
         /* Timer & Input */
@@ -345,8 +377,10 @@
         }
         #message.show { opacity: 1; }
 
-        @media (max-width: 400px) {
-            .method-selector { flex-direction: column; }
+        @media (max-width: 550px) {
+            .nav-arrow.left { left: 5px; }
+            .nav-arrow.right { right: 5px; }
+            .slider-card { padding: 30px 20px; }
         }
     </style>
 </head>
@@ -382,13 +416,13 @@
             <button class="method-btn" data-method="rapido">Método Rápido</button>
         </div>
 
-        <div id="sliderContainer" class="slider-container">
-            <div id="cardsWrapper"></div>
-            <div class="slider-nav">
-                <button id="prevBtn" class="nav-btn">←</button>
-                <div id="progressIndicator" class="progress-indicator">Card 1 de 1</div>
-                <button id="nextBtn" class="nav-btn">→</button>
+        <div id="sliderWrapper" class="slider-wrapper">
+            <button id="prevBtn" class="nav-arrow left">←</button>
+            <div id="sliderContainer" class="slider-container">
+                <div id="cardsWrapper"></div>
             </div>
+            <button id="nextBtn" class="nav-arrow right">→</button>
+            <div id="dotsContainer" class="dots-container"></div>
         </div>
         
         <div class="actions" id="prayerActions">
@@ -403,11 +437,11 @@
             const markAsDoneButton = document.getElementById('markAsDone');
             const shareBtn = document.getElementById('shareBtn');
             const messageElement = document.getElementById('message');
-            const sliderContainer = document.getElementById('sliderContainer');
+            const sliderWrapper = document.getElementById('sliderWrapper');
             const cardsWrapper = document.getElementById('cardsWrapper');
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
-            const progressIndicator = document.getElementById('progressIndicator');
+            const dotsContainer = document.getElementById('dotsContainer');
             const dayCounterElement = document.getElementById('dayCounter');
             const calendarGrid = document.getElementById('calendarGrid');
             const calendarMonthLabel = document.getElementById('calendarMonth');
@@ -435,8 +469,8 @@
                 if (touchEndX > touchStartX + 50) prevCard();
             }
 
-            sliderContainer.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX);
-            sliderContainer.addEventListener('touchend', e => {
+            sliderWrapper.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX);
+            sliderWrapper.addEventListener('touchend', e => {
                 touchEndX = e.changedTouches[0].screenX;
                 handleGesture();
             });
@@ -524,7 +558,11 @@
                 if (!gospelData) return;
                 
                 const gospelChunks = splitGospelIntoChunks(gospelData.texto);
-                allCardsData = gospelChunks.map(text => ({ type: 'gospel', text }));
+                allCardsData = gospelChunks.map((text, idx) => ({ 
+                    type: 'gospel', 
+                    text, 
+                    title: idx === 0 ? gospelData.titulo : null 
+                }));
 
                 if (currentMethod === 'lectio') {
                     allCardsData.push(
@@ -546,16 +584,19 @@
 
             function renderCards() {
                 cardsWrapper.innerHTML = '';
+                dotsContainer.innerHTML = '';
+                
                 allCardsData.forEach((data, index) => {
+                    // Create Card
                     const cardDiv = document.createElement('div');
                     cardDiv.className = `slider-card ${index === 0 ? 'active' : ''}`;
                     
                     if (data.type === 'gospel') {
                         cardDiv.innerHTML = `
+                            ${data.title ? `<div class="card-title">${data.title}</div>` : ''}
                             <div class="card-ref">${gospelData.referencia}</div>
                             <div class="card-text">${data.text}</div>
                         `;
-                        // If it's the last gospel card and method is simple, add the button
                         if (index === allCardsData.length - 1 && currentMethod === 'simples') {
                             const btn = document.createElement('button');
                             btn.className = 'btn btn-primary';
@@ -589,7 +630,6 @@
                             startBtn.onclick = () => startTimer(timerDiv, data.timer);
                             cardDiv.appendChild(startBtn);
                         }
-                        // If it's the very last card of the method
                         if (index === allCardsData.length - 1) {
                             const btn = document.createElement('button');
                             btn.className = 'btn btn-primary';
@@ -600,25 +640,36 @@
                         }
                     }
                     cardsWrapper.appendChild(cardDiv);
+
+                    // Create Dot
+                    const dot = document.createElement('div');
+                    dot.className = `dot ${index === 0 ? 'active' : ''}`;
+                    dot.onclick = () => goToCard(index);
+                    dotsContainer.appendChild(dot);
                 });
 
                 currentCardIndex = 0;
                 updateSliderUI();
-                sliderContainer.style.display = 'block';
+                sliderWrapper.style.display = 'block';
                 prayerActions.style.display = 'flex';
             }
 
             function updateSliderUI() {
                 const cards = document.querySelectorAll('.slider-card');
+                const dots = document.querySelectorAll('.dot');
+                
                 cards.forEach((card, index) => {
                     card.classList.remove('active', 'prev');
                     if (index === currentCardIndex) card.classList.add('active');
                     else if (index < currentCardIndex) card.classList.add('prev');
                 });
 
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle('active', index === currentCardIndex);
+                });
+
                 prevBtn.disabled = currentCardIndex === 0;
                 nextBtn.disabled = currentCardIndex === allCardsData.length - 1;
-                progressIndicator.textContent = `Card ${currentCardIndex + 1} de ${allCardsData.length}`;
             }
 
             function nextCard() {
@@ -633,6 +684,11 @@
                     currentCardIndex--;
                     updateSliderUI();
                 }
+            }
+
+            function goToCard(index) {
+                currentCardIndex = index;
+                updateSliderUI();
             }
 
             nextBtn.onclick = nextCard;
@@ -660,7 +716,7 @@
                     btn.classList.add('active');
                     currentMethod = btn.dataset.method;
                     prepareCards();
-                    window.scrollTo({ top: sliderContainer.offsetTop - 20, behavior: 'smooth' });
+                    window.scrollTo({ top: sliderWrapper.offsetTop - 20, behavior: 'smooth' });
                 });
             });
 
