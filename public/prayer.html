@@ -591,7 +591,7 @@
                 <div id="inviteLinkArea" style="display: none; margin-top: 20px;">
                     <input type="text" id="inviteLinkInput" readonly style="font-size: 0.8em; margin-bottom: 10px;">
                     <div style="display: flex; gap: 10px;">
-                        <button id="copyInviteBtn" class="btn btn-secondary" style="padding: 10px; font-size: 0.7em;">Copiar</button>
+                        <button id="copyInviteBtn" class="btn btn-secondary" style="padding: 10px; font-size: 0.7em;">Copiar Link</button>
                         <button id="shareWhatsappBtn" class="btn btn-primary" style="padding: 10px; font-size: 0.7em; background: #25D366; border: none;">WhatsApp</button>
                     </div>
                 </div>
@@ -827,14 +827,13 @@
                         const data = coupleDoc.data();
                         if (data.partner1 !== userId && !data.partner2) {
                             await db.collection('couples').doc(inviteId).update({
-                                partner2: userId
+                                partner2: userId,
+                                partner2Name: userName
                             });
                             await db.collection('users').doc(userId).update({ coupleId: inviteId });
-                            await db.collection('users').doc(data.partner1).update({ coupleId: inviteId });
                             
                             coupleId = inviteId;
-                            const partnerDoc = await db.collection('users').doc(data.partner1).get();
-                            alert(`Você está conectado com ${partnerDoc.data().name}!`);
+                            alert(`Você está conectado com ${data.partner1Name}!`);
                             setupPartnerListener();
                             
                             // Clean URL
@@ -848,16 +847,17 @@
                 if (!coupleId) return;
 
                 const coupleDoc = await db.collection('couples').doc(coupleId).get();
+                if (!coupleDoc.exists) return;
+                
                 const data = coupleDoc.data();
                 partnerId = data.partner1 === userId ? data.partner2 : data.partner1;
+                const partnerName = data.partner1 === userId ? data.partner2Name : data.partner1Name;
 
                 if (!partnerId) return;
 
                 if (partnerUnsubscribe) partnerUnsubscribe();
 
-                // Listen to partner info
-                const partnerInfo = await db.collection('users').doc(partnerId).get();
-                partnerNameDisplay.textContent = partnerInfo.data().name;
+                partnerNameDisplay.textContent = partnerName || '...';
 
                 // Listen to partner prayer status for today
                 const dateKey = getCurrentDateKey();
@@ -865,10 +865,10 @@
                     .collection('prayers').doc(dateKey)
                     .onSnapshot((doc) => {
                         if (doc.exists) {
-                            partnerStatusText.innerHTML = `✅ <strong>${partnerInfo.data().name}</strong> completou a oração hoje`;
+                            partnerStatusText.innerHTML = `✅ <strong>${partnerName}</strong> completou a oração hoje`;
                             partnerStatusText.style.color = 'var(--success)';
                         } else {
-                            partnerStatusText.innerHTML = `⏳ <strong>${partnerInfo.data().name}</strong> ainda não completou hoje`;
+                            partnerStatusText.innerHTML = `⏳ <strong>${partnerName}</strong> ainda não completou hoje`;
                             partnerStatusText.style.color = 'var(--text-muted)';
                         }
                     });
@@ -885,17 +885,35 @@
             closeCoupleModal.onclick = () => coupleModal.classList.remove('show');
 
             generateInviteBtn.onclick = async () => {
-                const newCoupleRef = db.collection('couples').doc();
-                await newCoupleRef.set({
-                    partner1: userId,
-                    partner2: null,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                const inviteLink = `${window.location.origin}${window.location.pathname}?invite=${newCoupleRef.id}`;
-                inviteLinkInput.value = inviteLink;
-                inviteLinkArea.style.display = 'block';
-                generateInviteBtn.style.display = 'none';
+                console.log("Criando casal...");
+                try {
+                    const newCoupleRef = db.collection('couples').doc();
+                    const newCoupleId = newCoupleRef.id;
+                    
+                    await newCoupleRef.set({
+                        partner1: userId,
+                        partner1Name: userName,
+                        partner2: null,
+                        partner2Name: null,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    await db.collection('users').doc(userId).update({
+                        coupleId: newCoupleId
+                    });
+
+                    coupleId = newCoupleId;
+                    const link = `https://rodrigoeliasandrade.github.io/mystical-kraken-cheer/public/prayer.html?invite=${newCoupleId}`;
+                    console.log("Couple ID:", newCoupleId);
+                    console.log("Link gerado:", link);
+
+                    inviteLinkInput.value = link;
+                    inviteLinkArea.style.display = 'block';
+                    generateInviteBtn.style.display = 'none';
+                } catch (error) {
+                    console.error("Erro ao gerar convite:", error);
+                    alert("Erro ao gerar convite. Tente novamente.");
+                }
             };
 
             copyInviteBtn.onclick = () => {
@@ -913,8 +931,6 @@
                 if (confirm('Deseja realmente se desconectar?')) {
                     if (coupleId) {
                         await db.collection('users').doc(userId).update({ coupleId: null });
-                        // We don't delete the couple doc to avoid breaking the other partner's view immediately, 
-                        // but they will be disconnected next time they sync.
                     }
                     coupleId = null;
                     partnerId = null;
