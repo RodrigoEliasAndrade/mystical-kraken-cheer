@@ -779,34 +779,41 @@
             let partnerUnsubscribe = null;
             let audioCtx = null;
 
-            // Sound Logic (Tibetan Bell)
+            // Sound Logic (Sintetizado com ADSR)
             function playBellSound() {
+                console.log("Som tocando...");
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 
                 const now = audioCtx.currentTime;
-                const masterGain = audioCtx.createGain();
-                masterGain.gain.setValueAtTime(0.4, now);
-                masterGain.gain.exponentialRampToValueAtTime(0.001, now + 6);
-                masterGain.connect(audioCtx.destination);
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                
+                // ADSR Envelope
+                const attack = 0.01;
+                const decay = 0.3;
+                const sustainDuration = 0.5;
+                const release = 1;
+                const peakVolume = 0.3;
+                const sustainLevel = 0.15;
 
-                // Fundamental and overtones for a bell-like sound
-                const frequencies = [440, 880, 1320, 1760, 2200];
-                frequencies.forEach((freq, i) => {
-                    const osc = audioCtx.createOscillator();
-                    const g = audioCtx.createGain();
-                    
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(freq, now);
-                    
-                    g.gain.setValueAtTime(0.2 / (i + 1), now);
-                    g.gain.exponentialRampToValueAtTime(0.001, now + (6 - i));
-                    
-                    osc.connect(g);
-                    g.connect(masterGain);
-                    
-                    osc.start(now);
-                    osc.stop(now + 6);
-                });
+                gain.gain.setValueAtTime(0, now);
+                // Attack
+                gain.gain.linearRampToValueAtTime(peakVolume, now + attack);
+                // Decay
+                gain.gain.linearRampToValueAtTime(sustainLevel, now + attack + decay);
+                // Sustain duration
+                const releaseStart = now + attack + decay + sustainDuration;
+                // Release
+                gain.gain.exponentialRampToValueAtTime(0.001, releaseStart + release);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start(now);
+                osc.stop(releaseStart + release);
             }
 
             function stopSound() {
@@ -1223,6 +1230,13 @@
                             startBtn.textContent = 'Iniciar Silêncio';
                             startBtn.onclick = () => startTimer(timerDiv, data.timer);
                             cardDiv.appendChild(startBtn);
+
+                            const testBtn = document.createElement('button');
+                            testBtn.className = 'btn btn-secondary';
+                            testBtn.style.marginTop = '10px';
+                            testBtn.textContent = '🔔 Testar Som';
+                            testBtn.onclick = () => playBellSound();
+                            cardDiv.appendChild(testBtn);
 
                             const stopBtn = document.createElement('button');
                             stopBtn.className = 'btn btn-secondary';
