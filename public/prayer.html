@@ -1274,15 +1274,15 @@
                 if (currentMethod === 'lectio') {
                     allCardsData.push(
                         { type: 'step', step: 1, title: 'LEITURA', text: 'Leia o evangelho devagar, palavra por palavra.' },
-                        { type: 'step', step: 2, title: 'MEDITAÇÃO', text: 'O que este texto diz? O que significa para você?', input: true },
-                        { type: 'step', step: 3, title: 'ORAÇÃO', text: 'Eleva uma oração ao Senhor baseada no que você leu.', input: true },
-                        { type: 'step', step: 4, title: 'CONTEMPLAÇÃO', text: 'Fique em silêncio por 2 minutos, ouvindo a Deus.', timer: 120 }
+                        { type: 'step', step: 2, title: 'MEDITAÇÃO', text: 'O que este texto diz? O que significa para você?', input: true, label: 'meditation' },
+                        { type: 'step', step: 3, title: 'ORAÇÃO', text: 'Eleva uma oração ao Senhor baseada no que você leu.', input: true, label: 'prayer' },
+                        { type: 'step', step: 4, title: 'CONTEMPLAÇÃO', text: 'Fique em silêncio por 2 minutos, ouvindo a Deus.', timer: 120, input: true, label: 'contemplation' }
                     );
                 } else if (currentMethod === 'rapido') {
                     allCardsData.push(
-                        { type: 'step', step: 1, title: 'PASSO 1', text: 'O que este texto diz?', input: true },
-                        { type: 'step', step: 2, title: 'PASSO 2', text: 'O que Deus pede de mim através deste texto?', input: true },
-                        { type: 'step', step: 3, title: 'PASSO 3', text: 'O que vou viver hoje por conta disto?', input: true }
+                        { type: 'step', step: 1, title: 'PASSO 1', text: 'O que este texto diz?', input: true, label: 'step1' },
+                        { type: 'step', step: 2, title: 'PASSO 2', text: 'O que Deus pede de mim através deste texto?', input: true, label: 'step2' },
+                        { type: 'step', step: 3, title: 'PASSO 3', text: 'O que vou viver hoje por conta disto?', input: true, label: 'step3' }
                     );
                 }
 
@@ -1321,7 +1321,7 @@
                         if (data.input) {
                             const textarea = document.createElement('textarea');
                             textarea.placeholder = "Escreva aqui...";
-                            textarea.dataset.step = data.step;
+                            textarea.dataset.label = data.label;
                             cardDiv.appendChild(textarea);
                         }
                         if (data.timer) {
@@ -1449,12 +1449,20 @@
             });
 
             markAsDoneButton.addEventListener('click', async () => {
+                console.log("Iniciando processo de conclusão...");
                 const dateKey = getCurrentDateKey();
                 
                 // Collect reflections
                 const reflections = {};
-                document.querySelectorAll('#cardsWrapper textarea').forEach(ta => {
-                    reflections[`step${ta.dataset.step}`] = ta.value;
+                const textareas = document.querySelectorAll('#cardsWrapper textarea');
+                console.log(`Encontrados ${textareas.length} campos de texto.`);
+                
+                textareas.forEach(ta => {
+                    const label = ta.dataset.label;
+                    if (label) {
+                        reflections[label] = ta.value;
+                        console.log(`Capturado [${label}]: ${ta.value.substring(0, 20)}...`);
+                    }
                 });
 
                 const prayerData = {
@@ -1465,9 +1473,17 @@
                     reflections: reflections
                 };
 
+                console.log("Objeto de oração preparado:", prayerData);
+
                 // Sync with Firestore first
                 if (userId) {
-                    await db.collection('users').doc(userId).collection('prayers').doc(dateKey).set(prayerData);
+                    try {
+                        console.log(`Salvando no Firestore: users/${userId}/prayers/${dateKey}`);
+                        await db.collection('users').doc(userId).collection('prayers').doc(dateKey).set(prayerData);
+                        console.log("Salvamento no Firestore concluído com sucesso!");
+                    } catch (error) {
+                        console.error("Erro ao salvar no Firestore:", error);
+                    }
                 }
 
                 if (!completedDays.includes(dateKey)) {
@@ -1509,14 +1525,17 @@
             // Diary Logic
             async function openDiary() {
                 if (!userId) return;
+                console.log("Abrindo diário espiritual...");
                 diaryModal.classList.add('show');
                 diaryList.innerHTML = '<p style="padding: 20px;">Carregando diário...</p>';
                 
                 try {
+                    console.log(`Buscando orações para o usuário: ${userId}`);
                     const snapshot = await db.collection('users').doc(userId).collection('prayers')
                         .orderBy('timestamp', 'desc').get();
                     
                     diaryEntries = snapshot.docs.map(doc => doc.data());
+                    console.log(`Encontradas ${diaryEntries.length} entradas no diário.`);
                     renderDiaryList(diaryEntries);
                 } catch (error) {
                     console.error("Erro ao carregar diário:", error);
@@ -1538,9 +1557,9 @@
                     // Get first reflection preview
                     let preview = "Sem reflexões escritas.";
                     if (entry.reflections) {
-                        const firstKey = Object.keys(entry.reflections)[0];
-                        if (firstKey && entry.reflections[firstKey]) {
-                            preview = entry.reflections[firstKey].substring(0, 50) + (entry.reflections[firstKey].length > 50 ? '...' : '');
+                        const values = Object.values(entry.reflections).filter(v => v.trim() !== '');
+                        if (values.length > 0) {
+                            preview = values[0].substring(0, 50) + (values[0].length > 50 ? '...' : '');
                         }
                     }
 
@@ -1555,6 +1574,7 @@
             }
 
             async function showDayDetail(dateKey, preloadedData = null) {
+                console.log(`Mostrando detalhes para a data: ${dateKey}`);
                 dayDetailModal.classList.add('show');
                 detailDateTitle.textContent = `Reflexão de ${dateKey}`;
                 dayDetailContent.innerHTML = '<p>Carregando detalhes...</p>';
@@ -1562,8 +1582,14 @@
                 try {
                     let data = preloadedData;
                     if (!data) {
+                        console.log(`Buscando dados no Firestore para ${dateKey}...`);
                         const doc = await db.collection('users').doc(userId).collection('prayers').doc(dateKey).get();
-                        if (doc.exists) data = doc.data();
+                        if (doc.exists) {
+                            data = doc.data();
+                            console.log("Dados encontrados:", data);
+                        } else {
+                            console.log("Nenhum documento encontrado para esta data.");
+                        }
                     }
 
                     if (!data) {
@@ -1573,11 +1599,20 @@
 
                     let reflectionsHtml = '';
                     if (data.reflections) {
-                        Object.entries(data.reflections).forEach(([step, text]) => {
-                            if (text) {
+                        const labels = {
+                            meditation: 'Meditação',
+                            prayer: 'Oração',
+                            contemplation: 'Contemplação',
+                            step1: 'Passo 1',
+                            step2: 'Passo 2',
+                            step3: 'Passo 3'
+                        };
+
+                        Object.entries(data.reflections).forEach(([key, text]) => {
+                            if (text && text.trim() !== '') {
                                 reflectionsHtml += `
                                     <div class="detail-section">
-                                        <span class="detail-label">${step.replace('step', 'Passo ')}</span>
+                                        <span class="detail-label">${labels[key] || key}</span>
                                         <div class="detail-content">${text}</div>
                                     </div>
                                 `;
