@@ -78,7 +78,7 @@
         }
         .notification-btn.active { color: var(--accent); }
         .notification-btn.inactive { color: #888; opacity: 0.6; }
-        .history-btn { color: white; }
+        .history-btn, .couple-btn { color: white; }
 
         .notification-menu {
             position: absolute;
@@ -109,7 +109,7 @@
 
         .time-input-container { margin-bottom: 20px; }
         .time-input-label { font-size: 0.85em; font-weight: 700; display: block; margin-bottom: 8px; color: var(--primary); }
-        input[type="time"] {
+        input[type="time"], input[type="text"] {
             width: 100%;
             padding: 12px;
             border-radius: 10px;
@@ -118,10 +118,36 @@
             font-size: 1.1em;
             color: var(--primary);
             background: white;
-            cursor: pointer;
             outline: none;
         }
         .time-input-helper { font-size: 0.75em; color: var(--text-muted); margin-top: 6px; display: block; line-height: 1.3; }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .modal-content h2 { color: var(--primary); margin-top: 0; }
+        .modal-content p { color: var(--text-muted); line-height: 1.5; }
 
         .app-header .cross {
             font-size: 24px;
@@ -515,6 +541,7 @@
 
     <header class="app-header">
         <div class="header-icons">
+            <button id="coupleBtn" class="icon-btn couple-btn">💑</button>
             <button id="historyBtn" class="icon-btn history-btn">📅</button>
             <button id="notificationBtn" class="icon-btn notification-btn inactive">🔕</button>
         </div>
@@ -542,6 +569,43 @@
         <h1>Equipes de Nossa Senhora</h1>
         <p>Oração Diária</p>
     </header>
+
+    <!-- Welcome Modal -->
+    <div id="welcomeModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Bem-vindo!</h2>
+            <p>Para começar sua jornada de oração, como podemos te chamar?</p>
+            <input type="text" id="userNameInput" placeholder="Seu nome" style="margin-bottom: 20px;">
+            <button id="startAppBtn" class="btn btn-primary">Começar</button>
+        </div>
+    </div>
+
+    <!-- Couple Modal -->
+    <div id="coupleModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="coupleModalTitle">Conectar Casal</h2>
+            <div id="notConnectedView">
+                <p>Seu nome: <strong id="displayMyName">...</strong></p>
+                <p>Conecte-se com seu cônjuge para acompanharem a oração um do outro.</p>
+                <button id="generateInviteBtn" class="btn btn-primary">Gerar Link de Convite</button>
+                <div id="inviteLinkArea" style="display: none; margin-top: 20px;">
+                    <input type="text" id="inviteLinkInput" readonly style="font-size: 0.8em; margin-bottom: 10px;">
+                    <div style="display: flex; gap: 10px;">
+                        <button id="copyInviteBtn" class="btn btn-secondary" style="padding: 10px; font-size: 0.7em;">Copiar</button>
+                        <button id="shareWhatsappBtn" class="btn btn-primary" style="padding: 10px; font-size: 0.7em; background: #25D366; border: none;">WhatsApp</button>
+                    </div>
+                </div>
+            </div>
+            <div id="connectedView" style="display: none;">
+                <p>Conectado com: <strong id="partnerName">...</strong></p>
+                <div id="partnerStatusArea" style="margin: 20px 0; padding: 15px; border-radius: 12px; background: #f8f9fa;">
+                    <p id="partnerStatusText">Carregando status...</p>
+                </div>
+                <button id="disconnectBtn" class="btn btn-secondary" style="font-size: 0.8em; padding: 10px;">Desconectar</button>
+            </div>
+            <button id="closeCoupleModal" class="btn btn-secondary" style="margin-top: 20px; border: none;">Fechar</button>
+        </div>
+    </div>
 
     <!-- Main View -->
     <div id="mainView" class="main-container">
@@ -669,9 +733,30 @@
             const notifTime = document.getElementById('notifTime');
             const saveNotif = document.getElementById('saveNotif');
 
+            // Couple Elements
+            const coupleBtn = document.getElementById('coupleBtn');
+            const coupleModal = document.getElementById('coupleModal');
+            const welcomeModal = document.getElementById('welcomeModal');
+            const userNameInput = document.getElementById('userNameInput');
+            const startAppBtn = document.getElementById('startAppBtn');
+            const generateInviteBtn = document.getElementById('generateInviteBtn');
+            const inviteLinkArea = document.getElementById('inviteLinkArea');
+            const inviteLinkInput = document.getElementById('inviteLinkInput');
+            const copyInviteBtn = document.getElementById('copyInviteBtn');
+            const shareWhatsappBtn = document.getElementById('shareWhatsappBtn');
+            const notConnectedView = document.getElementById('notConnectedView');
+            const connectedView = document.getElementById('connectedView');
+            const partnerNameDisplay = document.getElementById('partnerName');
+            const partnerStatusText = document.getElementById('partnerStatusText');
+            const displayMyName = document.getElementById('displayMyName');
+            const closeCoupleModal = document.getElementById('closeCoupleModal');
+            const disconnectBtn = document.getElementById('disconnectBtn');
+
             const STORAGE_KEY_COMPLETED = 'prayerCompletedDaysList';
             const STORAGE_KEY_NOTIF = 'prayerNotificationSettings';
             const STORAGE_KEY_LAST_NOTIF = 'prayerLastNotificationSent';
+            const STORAGE_KEY_USER_ID = 'prayerUserId';
+            const STORAGE_KEY_USER_NAME = 'prayerUserName';
 
             let completedDays = [];
             let today = new Date();
@@ -680,6 +765,166 @@
             let currentCardIndex = 0;
             let allCardsData = [];
             let timerInterval = null;
+            let userId = localStorage.getItem(STORAGE_KEY_USER_ID);
+            let userName = localStorage.getItem(STORAGE_KEY_USER_NAME);
+            let coupleId = null;
+            let partnerId = null;
+            let partnerUnsubscribe = null;
+
+            // Initialize User
+            async function initUser() {
+                if (!userId) {
+                    userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem(STORAGE_KEY_USER_ID, userId);
+                }
+                
+                if (!userName) {
+                    welcomeModal.classList.add('show');
+                } else {
+                    displayMyName.textContent = userName;
+                    syncUserToFirestore();
+                    checkInviteLink();
+                }
+            }
+
+            async function syncUserToFirestore() {
+                const userDoc = await db.collection('users').doc(userId).get();
+                if (userDoc.exists) {
+                    const data = userDoc.data();
+                    coupleId = data.coupleId;
+                    if (coupleId) {
+                        setupPartnerListener();
+                    }
+                } else {
+                    await db.collection('users').doc(userId).set({
+                        name: userName,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        coupleId: null
+                    });
+                }
+            }
+
+            startAppBtn.onclick = async () => {
+                const name = userNameInput.value.trim();
+                if (name) {
+                    userName = name;
+                    localStorage.setItem(STORAGE_KEY_USER_NAME, userName);
+                    displayMyName.textContent = userName;
+                    welcomeModal.classList.remove('show');
+                    await syncUserToFirestore();
+                    checkInviteLink();
+                }
+            };
+
+            // Couple Logic
+            async function checkInviteLink() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const inviteId = urlParams.get('invite');
+                
+                if (inviteId && userName) {
+                    const coupleDoc = await db.collection('couples').doc(inviteId).get();
+                    if (coupleDoc.exists) {
+                        const data = coupleDoc.data();
+                        if (data.partner1 !== userId && !data.partner2) {
+                            await db.collection('couples').doc(inviteId).update({
+                                partner2: userId
+                            });
+                            await db.collection('users').doc(userId).update({ coupleId: inviteId });
+                            await db.collection('users').doc(data.partner1).update({ coupleId: inviteId });
+                            
+                            coupleId = inviteId;
+                            const partnerDoc = await db.collection('users').doc(data.partner1).get();
+                            alert(`Você está conectado com ${partnerDoc.data().name}!`);
+                            setupPartnerListener();
+                            
+                            // Clean URL
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                        }
+                    }
+                }
+            }
+
+            async function setupPartnerListener() {
+                if (!coupleId) return;
+
+                const coupleDoc = await db.collection('couples').doc(coupleId).get();
+                const data = coupleDoc.data();
+                partnerId = data.partner1 === userId ? data.partner2 : data.partner1;
+
+                if (!partnerId) return;
+
+                if (partnerUnsubscribe) partnerUnsubscribe();
+
+                // Listen to partner info
+                const partnerInfo = await db.collection('users').doc(partnerId).get();
+                partnerNameDisplay.textContent = partnerInfo.data().name;
+
+                // Listen to partner prayer status for today
+                const dateKey = getCurrentDateKey();
+                partnerUnsubscribe = db.collection('users').doc(partnerId)
+                    .collection('prayers').doc(dateKey)
+                    .onSnapshot((doc) => {
+                        if (doc.exists) {
+                            partnerStatusText.innerHTML = `✅ <strong>${partnerInfo.data().name}</strong> completou a oração hoje`;
+                            partnerStatusText.style.color = 'var(--success)';
+                        } else {
+                            partnerStatusText.innerHTML = `⏳ <strong>${partnerInfo.data().name}</strong> ainda não completou hoje`;
+                            partnerStatusText.style.color = 'var(--text-muted)';
+                        }
+                    });
+
+                notConnectedView.style.display = 'none';
+                connectedView.style.display = 'block';
+            }
+
+            coupleBtn.onclick = () => {
+                coupleModal.classList.add('show');
+                if (coupleId) setupPartnerListener();
+            };
+
+            closeCoupleModal.onclick = () => coupleModal.classList.remove('show');
+
+            generateInviteBtn.onclick = async () => {
+                const newCoupleRef = db.collection('couples').doc();
+                await newCoupleRef.set({
+                    partner1: userId,
+                    partner2: null,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                const inviteLink = `${window.location.origin}${window.location.pathname}?invite=${newCoupleRef.id}`;
+                inviteLinkInput.value = inviteLink;
+                inviteLinkArea.style.display = 'block';
+                generateInviteBtn.style.display = 'none';
+            };
+
+            copyInviteBtn.onclick = () => {
+                inviteLinkInput.select();
+                document.execCommand('copy');
+                alert('Link copiado!');
+            };
+
+            shareWhatsappBtn.onclick = () => {
+                const text = encodeURIComponent(`Olá! Vamos rezar juntos? Conecte-se comigo no app das Equipes de Nossa Senhora: ${inviteLinkInput.value}`);
+                window.open(`https://wa.me/?text=${text}`);
+            };
+
+            disconnectBtn.onclick = async () => {
+                if (confirm('Deseja realmente se desconectar?')) {
+                    if (coupleId) {
+                        await db.collection('users').doc(userId).update({ coupleId: null });
+                        // We don't delete the couple doc to avoid breaking the other partner's view immediately, 
+                        // but they will be disconnected next time they sync.
+                    }
+                    coupleId = null;
+                    partnerId = null;
+                    if (partnerUnsubscribe) partnerUnsubscribe();
+                    notConnectedView.style.display = 'block';
+                    connectedView.style.display = 'none';
+                    inviteLinkArea.style.display = 'none';
+                    generateInviteBtn.style.display = 'block';
+                }
+            };
 
             // Swipe detection
             let touchStartX = 0;
@@ -705,6 +950,7 @@
                 renderCalendar(today.getMonth(), today.getFullYear(), calendarGrid, calendarMonthLabel);
                 updateDayCounterDisplay();
                 loadNotificationSettings();
+                initUser();
             }
 
             function updateDayCounterDisplay() {
@@ -982,11 +1228,19 @@
                 });
             });
 
-            markAsDoneButton.addEventListener('click', () => {
+            markAsDoneButton.addEventListener('click', async () => {
                 const dateKey = getCurrentDateKey();
                 if (!completedDays.includes(dateKey)) {
                     completedDays.push(dateKey);
                     localStorage.setItem(STORAGE_KEY_COMPLETED, JSON.stringify(completedDays));
+                    
+                    // Sync with Firestore
+                    if (userId) {
+                        await db.collection('users').doc(userId).collection('prayers').doc(dateKey).set({
+                            completedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+
                     renderCalendar(today.getMonth(), today.getFullYear(), calendarGrid, calendarMonthLabel);
                     updateDayCounterDisplay();
                     messageElement.textContent = 'Glória a Deus! Concluído.';
