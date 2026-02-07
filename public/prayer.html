@@ -1225,18 +1225,27 @@
                             timerDiv.textContent = '02:00';
                             cardDiv.appendChild(timerDiv);
 
+                            // New Test Button
+                            const testBtn = document.createElement('button');
+                            testBtn.className = 'btn btn-secondary';
+                            testBtn.style.marginTop = '10px';
+                            testBtn.style.marginBottom = '10px';
+                            testBtn.style.padding = '10px';
+                            testBtn.style.fontSize = '0.8em';
+                            testBtn.style.backgroundColor = '#f8f9fa';
+                            testBtn.style.border = '1px solid #ddd';
+                            testBtn.textContent = '🔔 Testar Som';
+                            testBtn.onclick = () => {
+                                console.log("Tocando som de teste...");
+                                playBellSound();
+                            };
+                            cardDiv.appendChild(testBtn);
+
                             const startBtn = document.createElement('button');
                             startBtn.className = 'btn btn-secondary';
                             startBtn.textContent = 'Iniciar Silêncio';
                             startBtn.onclick = () => startTimer(timerDiv, data.timer);
                             cardDiv.appendChild(startBtn);
-
-                            const testBtn = document.createElement('button');
-                            testBtn.className = 'btn btn-secondary';
-                            testBtn.style.marginTop = '10px';
-                            testBtn.textContent = '🔔 Testar Som';
-                            testBtn.onclick = () => playBellSound();
-                            cardDiv.appendChild(testBtn);
 
                             const stopBtn = document.createElement('button');
                             stopBtn.className = 'btn btn-secondary';
