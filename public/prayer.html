@@ -567,6 +567,7 @@
 
         <span class="cross">✝</span>
         <h1>Equipes de Nossa Senhora</h1>
+        <p id="headerNames" style="font-size: 0.9em; opacity: 0.8; margin-top: 2px; text-transform: none;"></p>
         <p>Oração Diária</p>
     </header>
 
@@ -751,6 +752,7 @@
             const displayMyName = document.getElementById('displayMyName');
             const closeCoupleModal = document.getElementById('closeCoupleModal');
             const disconnectBtn = document.getElementById('disconnectBtn');
+            const headerNames = document.getElementById('headerNames');
 
             const STORAGE_KEY_COMPLETED = 'prayerCompletedDaysList';
             const STORAGE_KEY_NOTIF = 'prayerNotificationSettings';
@@ -794,6 +796,8 @@
                     coupleId = data.coupleId;
                     if (coupleId) {
                         setupPartnerListener();
+                    } else {
+                        headerNames.textContent = userName;
                     }
                 } else {
                     await db.collection('users').doc(userId).set({
@@ -801,6 +805,7 @@
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                         coupleId: null
                     });
+                    headerNames.textContent = userName;
                 }
             }
 
@@ -851,15 +856,22 @@
                 
                 const data = coupleDoc.data();
                 partnerId = data.partner1 === userId ? data.partner2 : data.partner1;
-                const partnerName = data.partner1 === userId ? data.partner2Name : data.partner1Name;
+                
+                if (!partnerId) {
+                    headerNames.textContent = userName;
+                    return;
+                }
 
-                if (!partnerId) return;
+                // Fetch partner name from /users/{partnerId}
+                const partnerDoc = await db.collection('users').doc(partnerId).get();
+                const partnerName = partnerDoc.exists ? partnerDoc.data().name : '...';
+
+                partnerNameDisplay.textContent = partnerName;
+                headerNames.textContent = `${userName} & ${partnerName}`;
 
                 if (partnerUnsubscribe) partnerUnsubscribe();
 
-                partnerNameDisplay.textContent = partnerName || '...';
-
-                // Listen to partner prayer status for today
+                // Listen to partner prayer status for today in real-time
                 const dateKey = getCurrentDateKey();
                 partnerUnsubscribe = db.collection('users').doc(partnerId)
                     .collection('prayers').doc(dateKey)
@@ -939,6 +951,7 @@
                     connectedView.style.display = 'none';
                     inviteLinkArea.style.display = 'none';
                     generateInviteBtn.style.display = 'block';
+                    headerNames.textContent = userName;
                 }
             };
 
