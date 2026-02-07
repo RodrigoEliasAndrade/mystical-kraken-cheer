@@ -78,7 +78,7 @@
         }
         .notification-btn.active { color: var(--accent); }
         .notification-btn.inactive { color: #888; opacity: 0.6; }
-        .history-btn, .couple-btn { color: white; }
+        .history-btn, .couple-btn, .diary-btn { color: white; }
 
         .notification-menu {
             position: absolute;
@@ -145,6 +145,8 @@
             max-width: 400px;
             text-align: center;
             box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .modal-content h2 { color: var(--primary); margin-top: 0; }
         .modal-content p { color: var(--text-muted); line-height: 1.5; }
@@ -308,10 +310,12 @@
             border-radius: 8px;
             background-color: #eee;
             color: #718096;
+            cursor: default;
         }
         .calendar-day.completed {
             background-color: var(--success);
             color: white;
+            cursor: pointer;
         }
         .calendar-day.today {
             border: 2px solid var(--today-border);
@@ -531,6 +535,22 @@
         }
         #message.show { opacity: 1; }
 
+        /* Diary Styles */
+        .diary-item {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .diary-item:last-child { border-bottom: none; }
+        .diary-date { font-weight: 700; color: var(--primary); font-size: 0.9em; }
+        .diary-ref { color: var(--accent); font-size: 0.8em; font-weight: 700; }
+        .diary-preview { font-size: 0.85em; color: var(--text-muted); margin-top: 5px; }
+        
+        .detail-section { text-align: left; margin-bottom: 20px; }
+        .detail-label { font-weight: 700; color: var(--primary); font-size: 0.8em; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .detail-content { font-size: 1em; line-height: 1.6; color: var(--text); }
+
         @media (max-width: 550px) {
             .slider-card { padding: 30px 20px; }
         }
@@ -541,6 +561,7 @@
 
     <header class="app-header">
         <div class="header-icons">
+            <button id="diaryBtn" class="icon-btn diary-btn">📖</button>
             <button id="coupleBtn" class="icon-btn couple-btn">💑</button>
             <button id="historyBtn" class="icon-btn history-btn">📅</button>
             <button id="notificationBtn" class="icon-btn notification-btn inactive">🔕</button>
@@ -609,6 +630,29 @@
                 <button id="disconnectBtn" class="btn btn-secondary" style="font-size: 0.8em; padding: 10px;">Desconectar</button>
             </div>
             <button id="closeCoupleModal" class="btn btn-secondary" style="margin-top: 20px; border: none;">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Diary Modal -->
+    <div id="diaryModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <h2>Meu Diário Espiritual</h2>
+            <input type="text" id="diarySearch" placeholder="Buscar por data ou palavra..." style="margin-bottom: 20px;">
+            <div id="diaryList" style="max-height: 50vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;">
+                <!-- Diary items injected here -->
+            </div>
+            <button id="closeDiaryModal" class="btn btn-secondary" style="margin-top: 20px;">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Day Detail Modal -->
+    <div id="dayDetailModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <h2 id="detailDateTitle">Reflexão do Dia</h2>
+            <div id="dayDetailContent">
+                <!-- Detail content injected here -->
+            </div>
+            <button id="closeDayDetailModal" class="btn btn-secondary" style="margin-top: 20px;">Fechar</button>
         </div>
     </div>
 
@@ -731,6 +775,17 @@
             const detailMonthLabel = document.getElementById('detailMonthLabel');
             const detailCalendarGrid = document.getElementById('detailCalendarGrid');
 
+            // Diary Elements
+            const diaryBtn = document.getElementById('diaryBtn');
+            const diaryModal = document.getElementById('diaryModal');
+            const closeDiaryModal = document.getElementById('closeDiaryModal');
+            const diaryList = document.getElementById('diaryList');
+            const diarySearch = document.getElementById('diarySearch');
+            const dayDetailModal = document.getElementById('dayDetailModal');
+            const closeDayDetailModal = document.getElementById('closeDayDetailModal');
+            const dayDetailContent = document.getElementById('dayDetailContent');
+            const detailDateTitle = document.getElementById('detailDateTitle');
+
             // Notification Elements
             const notificationBtn = document.getElementById('notificationBtn');
             const notificationMenu = document.getElementById('notificationMenu');
@@ -778,6 +833,7 @@
             let partnerId = null;
             let partnerUnsubscribe = null;
             let audioCtx = null;
+            let diaryEntries = [];
 
             // Sound Logic (Sintetizado com ADSR)
             function playBellSound() {
@@ -1060,7 +1116,10 @@
 
                     const dateString = `${year}-${month + 1}-${day}`;
                     if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) dayDiv.classList.add('today');
-                    if (completedDays.includes(dateString)) dayDiv.classList.add('completed');
+                    if (completedDays.includes(dateString)) {
+                        dayDiv.classList.add('completed');
+                        dayDiv.onclick = () => showDayDetail(dateString);
+                    }
 
                     grid.appendChild(dayDiv);
                 }
@@ -1217,6 +1276,7 @@
                         if (data.input) {
                             const textarea = document.createElement('textarea');
                             textarea.placeholder = "Escreva aqui...";
+                            textarea.dataset.step = data.step;
                             cardDiv.appendChild(textarea);
                         }
                         if (data.timer) {
@@ -1345,23 +1405,36 @@
 
             markAsDoneButton.addEventListener('click', async () => {
                 const dateKey = getCurrentDateKey();
+                
+                // Collect reflections
+                const reflections = {};
+                document.querySelectorAll('#cardsWrapper textarea').forEach(ta => {
+                    reflections[`step${ta.dataset.step}`] = ta.value;
+                });
+
+                const prayerData = {
+                    date: dateKey,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    gospel: gospelData,
+                    method: currentMethod === 'lectio' ? 'Lectio Divina' : (currentMethod === 'rapido' ? 'Método Rápido' : 'Liturgia Simples'),
+                    reflections: reflections
+                };
+
                 if (!completedDays.includes(dateKey)) {
                     completedDays.push(dateKey);
                     localStorage.setItem(STORAGE_KEY_COMPLETED, JSON.stringify(completedDays));
-                    
-                    // Sync with Firestore
-                    if (userId) {
-                        await db.collection('users').doc(userId).collection('prayers').doc(dateKey).set({
-                            completedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }
-
-                    renderCalendar(today.getMonth(), today.getFullYear(), calendarGrid, calendarMonthLabel);
-                    updateDayCounterDisplay();
-                    messageElement.textContent = 'Glória a Deus! Concluído.';
-                    messageElement.classList.add('show');
-                    setTimeout(() => messageElement.classList.remove('show'), 3000);
                 }
+                
+                // Sync with Firestore
+                if (userId) {
+                    await db.collection('users').doc(userId).collection('prayers').doc(dateKey).set(prayerData);
+                }
+
+                renderCalendar(today.getMonth(), today.getFullYear(), calendarGrid, calendarMonthLabel);
+                updateDayCounterDisplay();
+                messageElement.textContent = 'Glória a Deus! Concluído.';
+                messageElement.classList.add('show');
+                setTimeout(() => messageElement.classList.remove('show'), 3000);
             });
 
             shareBtn.addEventListener('click', () => {
@@ -1374,6 +1447,116 @@
                     alert('Evangelho copiado!');
                 }
             });
+
+            // Diary Logic
+            async function openDiary() {
+                if (!userId) return;
+                diaryModal.classList.add('show');
+                diaryList.innerHTML = '<p style="padding: 20px;">Carregando diário...</p>';
+                
+                try {
+                    const snapshot = await db.collection('users').doc(userId).collection('prayers')
+                        .orderBy('timestamp', 'desc').get();
+                    
+                    diaryEntries = snapshot.docs.map(doc => doc.data());
+                    renderDiaryList(diaryEntries);
+                } catch (error) {
+                    console.error("Erro ao carregar diário:", error);
+                    diaryList.innerHTML = '<p style="padding: 20px; color: red;">Erro ao carregar diário.</p>';
+                }
+            }
+
+            function renderDiaryList(entries) {
+                diaryList.innerHTML = '';
+                if (entries.length === 0) {
+                    diaryList.innerHTML = '<p style="padding: 20px;">Nenhuma reflexão salva ainda.</p>';
+                    return;
+                }
+
+                entries.forEach(entry => {
+                    const item = document.createElement('div');
+                    item.className = 'diary-item';
+                    
+                    // Get first reflection preview
+                    let preview = "Sem reflexões escritas.";
+                    if (entry.reflections) {
+                        const firstKey = Object.keys(entry.reflections)[0];
+                        if (firstKey && entry.reflections[firstKey]) {
+                            preview = entry.reflections[firstKey].substring(0, 50) + (entry.reflections[firstKey].length > 50 ? '...' : '');
+                        }
+                    }
+
+                    item.innerHTML = `
+                        <div class="diary-date">${entry.date} - ${entry.method}</div>
+                        <div class="diary-ref">${entry.gospel ? entry.gospel.referencia : ''}</div>
+                        <div class="diary-preview">${preview}</div>
+                    `;
+                    item.onclick = () => showDayDetail(entry.date, entry);
+                    diaryList.appendChild(item);
+                });
+            }
+
+            async function showDayDetail(dateKey, preloadedData = null) {
+                dayDetailModal.classList.add('show');
+                detailDateTitle.textContent = `Reflexão de ${dateKey}`;
+                dayDetailContent.innerHTML = '<p>Carregando detalhes...</p>';
+
+                try {
+                    let data = preloadedData;
+                    if (!data) {
+                        const doc = await db.collection('users').doc(userId).collection('prayers').doc(dateKey).get();
+                        if (doc.exists) data = doc.data();
+                    }
+
+                    if (!data) {
+                        dayDetailContent.innerHTML = '<p>Nenhum dado encontrado para este dia.</p>';
+                        return;
+                    }
+
+                    let reflectionsHtml = '';
+                    if (data.reflections) {
+                        Object.entries(data.reflections).forEach(([step, text]) => {
+                            if (text) {
+                                reflectionsHtml += `
+                                    <div class="detail-section">
+                                        <span class="detail-label">${step.replace('step', 'Passo ')}</span>
+                                        <div class="detail-content">${text}</div>
+                                    </div>
+                                `;
+                            }
+                        });
+                    }
+
+                    dayDetailContent.innerHTML = `
+                        <div class="detail-section">
+                            <span class="detail-label">Método</span>
+                            <div class="detail-content">${data.method}</div>
+                        </div>
+                        <div class="detail-section">
+                            <span class="detail-label">Evangelho</span>
+                            <div class="detail-content"><strong>${data.gospel ? data.gospel.titulo : ''}</strong> (${data.gospel ? data.gospel.referencia : ''})</div>
+                        </div>
+                        ${reflectionsHtml || '<p>Nenhuma reflexão escrita.</p>'}
+                    `;
+                } catch (error) {
+                    console.error("Erro ao carregar detalhe:", error);
+                    dayDetailContent.innerHTML = '<p style="color: red;">Erro ao carregar detalhes.</p>';
+                }
+            }
+
+            diaryBtn.onclick = openDiary;
+            closeDiaryModal.onclick = () => diaryModal.classList.remove('show');
+            closeDayDetailModal.onclick = () => dayDetailModal.classList.remove('show');
+
+            diarySearch.oninput = () => {
+                const term = diarySearch.value.toLowerCase();
+                const filtered = diaryEntries.filter(entry => 
+                    entry.date.includes(term) || 
+                    (entry.gospel && entry.gospel.referencia.toLowerCase().includes(term)) ||
+                    Object.values(entry.reflections || {}).some(v => v.toLowerCase().includes(term))
+                );
+                renderDiaryList(filtered);
+            };
 
             // Notification Logic
             function loadNotificationSettings() {
