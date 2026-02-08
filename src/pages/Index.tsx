@@ -7,18 +7,45 @@ import PrayerCalendar from '@/components/home/PrayerCalendar';
 import PceSummary from '@/components/home/PceSummary';
 import PceCard from '@/components/home/PceCard';
 import PrayerMethods from '@/components/home/PrayerMethods';
+import PrayerSession from '@/components/home/PrayerSession';
 import { motion, AnimatePresence } from 'framer-motion';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 const Index = () => {
   const [liturgia, setLiturgia] = useState<any>(null);
   const [showMethods, setShowMethods] = useState(false);
+  const [activeMethod, setActiveMethod] = useState<'simples' | 'lectio' | 'rapido' | null>(null);
+  const [completedDays, setCompletedDays] = useState<string[]>([]);
   
   useEffect(() => {
     fetch('https://liturgia.up.railway.app/')
       .then(res => res.json())
       .then(data => setLiturgia(data))
       .catch(err => console.error("Erro ao buscar liturgia:", err));
+
+    // Load completed days from local storage (simulating Firebase for now)
+    const saved = localStorage.getItem('prayerCompletedDays');
+    if (saved) setCompletedDays(JSON.parse(saved));
   }, []);
+
+  const handleSelectMethod = (method: 'simples' | 'lectio' | 'rapido') => {
+    setActiveMethod(method);
+    setShowMethods(false);
+  };
+
+  const handleCompletePrayer = (reflections: any) => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const newCompleted = [...new Set([...completedDays, today])];
+    
+    setCompletedDays(newCompleted);
+    localStorage.setItem('prayerCompletedDays', JSON.stringify(newCompleted));
+    
+    setActiveMethod(null);
+    toast.success("Oração concluída! Que Deus te abençoe!");
+  };
+
+  const isTodayCompleted = completedDays.includes(format(new Date(), 'yyyy-MM-dd'));
 
   return (
     <div className="min-h-screen bg-[#f5f5f5] pb-24">
@@ -34,7 +61,7 @@ const Index = () => {
           transition={{ duration: 0.4 }}
           className="space-y-8"
         >
-          <PrayerCalendar completedDays={[]} />
+          <PrayerCalendar completedDays={completedDays} />
           
           <section>
             <h2 className="text-xs font-black uppercase tracking-[0.2em] text-[#2c3e6b] mb-4 px-1">
@@ -44,8 +71,9 @@ const Index = () => {
               <PceCard 
                 icon="🙏"
                 title="Oração Pessoal Diária"
-                status="Pendente"
-                info="🔥 5 dias seguidos"
+                status={isTodayCompleted ? "Completo hoje" : "Pendente"}
+                isCompleted={isTodayCompleted}
+                info={`🔥 ${completedDays.length} dias`}
                 onClick={() => setShowMethods(true)}
               />
               <PceCard 
@@ -94,7 +122,21 @@ const Index = () => {
 
       <AnimatePresence>
         {showMethods && (
-          <PrayerMethods onClose={() => setShowMethods(false)} />
+          <PrayerMethods 
+            onClose={() => setShowMethods(false)} 
+            onSelect={handleSelectMethod}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {activeMethod && liturgia && (
+          <PrayerSession 
+            method={activeMethod}
+            liturgia={liturgia}
+            onCancel={() => setActiveMethod(null)}
+            onComplete={handleCompletePrayer}
+          />
         )}
       </AnimatePresence>
 

@@ -7,9 +7,10 @@ import { motion } from 'framer-motion';
 
 interface PrayerMethodsProps {
   onClose: () => void;
+  onSelect: (method: 'simples' | 'lectio' | 'rapido') => void;
 }
 
-const PrayerMethods = ({ onClose }: PrayerMethodsProps) => {
+const PrayerMethods = ({ onClose, onSelect }: PrayerMethodsProps) => {
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
@@ -33,16 +34,27 @@ const PrayerMethods = ({ onClose }: PrayerMethodsProps) => {
         </div>
 
         <div className="space-y-4">
-          <Button className="w-full h-16 rounded-2xl justify-between px-6 text-lg font-bold bg-[#c9a84c] hover:bg-[#b8973d] text-white shadow-lg shadow-yellow-200/30 border-none">
+          <Button 
+            onClick={() => onSelect('simples')}
+            className="w-full h-16 rounded-2xl justify-between px-6 text-lg font-bold bg-[#c9a84c] hover:bg-[#b8973d] text-white shadow-lg shadow-yellow-200/30 border-none"
+          >
             Liturgia Simples
             <Play size={20} fill="currentColor" />
           </Button>
           
-          <Button variant="outline" className="w-full h-16 rounded-2xl text-lg font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5 bg-white">
+          <Button 
+            onClick={() => onSelect('lectio')}
+            variant="outline" 
+            className="w-full h-16 rounded-2xl text-lg font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5 bg-white"
+          >
             Lectio Divina
           </Button>
           
-          <Button variant="outline" className="w-full h-16 rounded-2xl text-lg font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5 bg-white">
+          <Button 
+            onClick={() => onSelect('rapido')}
+            variant="outline" 
+            className="w-full h-16 rounded-2xl text-lg font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5 bg-white"
+          >
             Método Rápido
           </Button>
         </div>
