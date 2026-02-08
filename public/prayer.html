@@ -24,9 +24,18 @@
             --nav-height: 70px;
         }
 
+        [data-theme="dark"] {
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --text: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --border: #333333;
+            --ai-bg: #1a2a4d;
+        }
+
         * {
             box-sizing: border-box;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
 
         body {
@@ -80,8 +89,6 @@
             padding: 5px;
             color: white;
         }
-        .notification-btn.active { color: var(--accent); }
-        .notification-btn.inactive { color: #888; opacity: 0.6; }
 
         /* Bottom Navigation */
         .bottom-nav {
@@ -90,7 +97,7 @@
             left: 0;
             width: 100%;
             height: var(--nav-height);
-            background: white;
+            background: var(--card-bg);
             display: flex;
             justify-content: space-around;
             align-items: center;
@@ -110,14 +117,14 @@
             cursor: pointer;
             flex: 1;
         }
-        .nav-item.active { color: var(--primary); }
+        .nav-item.active { color: var(--accent); }
         .nav-icon { font-size: 20px; }
 
         .notification-menu {
             position: absolute;
             top: 60px;
             right: 20px;
-            background: white;
+            background: var(--card-bg);
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             padding: 20px;
@@ -128,7 +135,7 @@
             color: var(--text);
         }
         .notification-menu.show { display: block; }
-        .notification-menu h3 { margin: 0 0 15px; font-size: 1em; color: var(--primary); }
+        .notification-menu h3 { margin: 0 0 15px; font-size: 1em; color: var(--accent); }
         
         .menu-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
         .menu-row label { font-size: 0.9em; font-weight: 700; }
@@ -141,7 +148,7 @@
         input:checked + .slider:before { transform: translateX(20px); }
 
         .time-input-container { margin-bottom: 20px; }
-        .time-input-label { font-size: 0.85em; font-weight: 700; display: block; margin-bottom: 8px; color: var(--primary); }
+        .time-input-label { font-size: 0.85em; font-weight: 700; display: block; margin-bottom: 8px; color: var(--accent); }
         input[type="time"], input[type="text"], input[type="date"] {
             width: 100%;
             padding: 12px;
@@ -149,8 +156,8 @@
             border: 2px solid var(--accent);
             font-family: inherit;
             font-size: 1.1em;
-            color: var(--primary);
-            background: white;
+            color: var(--text);
+            background: var(--card-bg);
             outline: none;
         }
 
@@ -170,7 +177,7 @@
         }
         .modal-overlay.show { display: flex; }
         .modal-content {
-            background: white;
+            background: var(--card-bg);
             border-radius: 24px;
             padding: 30px;
             width: 100%;
@@ -179,8 +186,9 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.2);
             max-height: 90vh;
             overflow-y: auto;
+            color: var(--text);
         }
-        .modal-content h2 { color: var(--primary); margin-top: 0; }
+        .modal-content h2 { color: var(--accent); margin-top: 0; }
         .modal-content p { color: var(--text-muted); line-height: 1.5; }
 
         /* Success Overlay */
@@ -190,7 +198,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.98);
+            background: var(--bg);
             display: none;
             flex-direction: column;
             align-items: center;
@@ -211,7 +219,7 @@
         .success-text {
             font-size: 1.5em;
             font-weight: 700;
-            color: var(--primary);
+            color: var(--accent);
             text-align: center;
             line-height: 1.4;
             padding: 0 20px;
@@ -250,12 +258,13 @@
             padding: 25px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.04);
             margin-bottom: 20px;
+            border: 1px solid var(--border);
         }
 
         .day-counter {
             font-size: 0.85em;
             font-weight: 700;
-            color: var(--primary);
+            color: var(--accent);
             text-align: center;
             margin-bottom: 15px;
             text-transform: uppercase;
@@ -264,7 +273,7 @@
 
         /* Calendar */
         .calendar-container {
-            background: #fdfcfb;
+            background: var(--bg);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 15px;
@@ -272,7 +281,7 @@
         .calendar-header {
             font-weight: 700;
             margin-bottom: 12px;
-            color: var(--primary);
+            color: var(--text);
             text-transform: capitalize;
             font-size: 0.95em;
             text-align: center;
@@ -285,7 +294,7 @@
         .calendar-day-name {
             font-size: 0.65em;
             font-weight: 700;
-            color: #a0aec0;
+            color: var(--text-muted);
             text-align: center;
             padding-bottom: 5px;
         }
@@ -296,8 +305,8 @@
             justify-content: center;
             font-size: 0.85em;
             border-radius: 8px;
-            background-color: #eee;
-            color: #718096;
+            background-color: var(--border);
+            color: var(--text-muted);
             cursor: default;
         }
         .calendar-day.completed {
@@ -308,7 +317,7 @@
         .calendar-day.today {
             border: 2px solid var(--today-border);
             font-weight: 700;
-            color: var(--primary);
+            color: var(--text);
         }
 
         /* Method Selector */
@@ -321,16 +330,16 @@
             flex: 1;
             padding: 12px 5px;
             border-radius: 10px;
-            border: 1.5px solid var(--primary);
+            border: 1.5px solid var(--accent);
             background: transparent;
-            color: var(--primary);
+            color: var(--accent);
             font-weight: 700;
             font-size: 0.75em;
             cursor: pointer;
             font-family: inherit;
         }
         .method-btn.active {
-            background: var(--primary);
+            background: var(--accent);
             color: white;
         }
 
@@ -357,7 +366,7 @@
         .nav-arrow {
             width: 48px;
             height: 48px;
-            background: var(--primary);
+            background: var(--accent);
             color: white;
             border: none;
             border-radius: 50%;
@@ -382,7 +391,7 @@
         .slider-card {
             position: absolute;
             width: 100%;
-            background: white;
+            background: var(--card-bg);
             border-radius: 24px;
             padding: 35px 30px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.06);
@@ -415,7 +424,7 @@
         .card-title {
             font-size: 1.375em;
             font-weight: 700;
-            color: var(--primary);
+            color: var(--accent);
             margin-bottom: 10px;
             line-height: 1.2;
         }
@@ -456,7 +465,7 @@
         }
         .step-title {
             font-weight: 700;
-            color: var(--primary);
+            color: var(--text);
             text-transform: uppercase;
             font-size: 1em;
         }
@@ -465,7 +474,7 @@
         .timer-display {
             font-size: 2.5em;
             font-weight: 700;
-            color: var(--primary);
+            color: var(--accent);
             text-align: center;
             margin: 20px 0;
         }
@@ -479,7 +488,8 @@
             resize: none;
             min-height: 120px;
             margin: 15px 0;
-            background: #fcfcfc;
+            background: var(--bg);
+            color: var(--text);
         }
 
         /* Final Actions */
@@ -505,9 +515,9 @@
             color: white;
         }
         .btn-secondary {
-            background-color: white;
-            color: var(--primary);
-            border: 1.5px solid var(--primary);
+            background-color: transparent;
+            color: var(--accent);
+            border: 1.5px solid var(--accent);
         }
 
         /* AI Advice Styles */
@@ -517,14 +527,14 @@
             padding: 20px;
             margin-top: 20px;
             text-align: left;
-            border: 1px solid #d0e0ff;
+            border: 1px solid var(--accent);
         }
         .ai-advice-header {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-bottom: 10px;
-            color: var(--primary);
+            color: var(--accent);
             font-weight: 700;
             font-size: 0.9em;
         }
@@ -543,16 +553,16 @@
             margin-top: 20px;
         }
         .pce-card {
-            background: #f8f9fa;
+            background: var(--bg);
             border-radius: 12px;
             padding: 15px;
             text-align: center;
             cursor: pointer;
-            border: 1px solid transparent;
+            border: 1px solid var(--border);
         }
         .pce-card:hover { border-color: var(--accent); }
         .pce-card-icon { font-size: 24px; margin-bottom: 8px; }
-        .pce-card-title { font-size: 0.75em; font-weight: 700; color: var(--primary); text-transform: uppercase; }
+        .pce-card-title { font-size: 0.75em; font-weight: 700; color: var(--text); text-transform: uppercase; }
 
         /* Intentions Wall */
         .intentions-list {
@@ -560,7 +570,7 @@
             margin-top: 20px;
         }
         .intention-item {
-            background: #f0f4ff;
+            background: var(--ai-bg);
             padding: 12px 15px;
             border-radius: 10px;
             margin-bottom: 10px;
@@ -568,9 +578,41 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border: 1px solid var(--border);
         }
         .intention-text { flex: 1; }
-        .intention-author { font-size: 0.7em; color: var(--primary); font-weight: 700; margin-left: 10px; }
+        .intention-author { font-size: 0.7em; color: var(--accent); font-weight: 700; margin-left: 10px; }
+
+        /* Diary List */
+        .diary-item {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            text-align: left;
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+        .diary-item:hover { border-color: var(--accent); }
+        .diary-date { font-weight: 700; color: var(--accent); font-size: 0.9em; }
+        .diary-method { font-size: 0.75em; color: var(--text-muted); text-transform: uppercase; }
+
+        /* Stats Dashboard */
+        .stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .stat-label { font-size: 0.8em; font-weight: 700; width: 120px; text-align: left; }
+        .stat-bar-bg { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+        .stat-bar-fill { height: 100%; background: var(--success); transition: width 1s ease; }
+        .stat-value { font-size: 0.8em; font-weight: 700; width: 40px; text-align: right; }
 
         @media (max-width: 550px) {
             .slider-card { padding: 30px 20px; }
@@ -582,6 +624,7 @@
 
     <header class="app-header">
         <div class="header-icons">
+            <button id="themeToggle" class="icon-btn" title="Alternar Tema">🌓</button>
             <button id="notificationBtn" class="icon-btn notification-btn inactive" title="Notificações">🔕</button>
         </div>
         
@@ -647,6 +690,30 @@
     <div id="pceModal" class="modal-overlay">
         <div class="modal-content" style="max-width: 450px;">
             <h2>Pontos Concretos de Esforço</h2>
+            
+            <div id="pceStats" class="stats-container">
+                <div class="stat-row">
+                    <span class="stat-label">Escuta Palavra</span>
+                    <div class="stat-bar-bg"><div id="statBar1" class="stat-bar-fill" style="width: 0%"></div></div>
+                    <span id="statVal1" class="stat-value">0%</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Oração Conjugal</span>
+                    <div class="stat-bar-bg"><div id="statBar2" class="stat-bar-fill" style="width: 0%"></div></div>
+                    <span id="statVal2" class="stat-value">0%</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Dever Sentar-se</span>
+                    <div class="stat-bar-bg"><div id="statBar3" class="stat-bar-fill" style="width: 0%"></div></div>
+                    <span id="statVal3" class="stat-value">0%</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Regra de Vida</span>
+                    <div class="stat-bar-bg"><div id="statBar4" class="stat-bar-fill" style="width: 0%"></div></div>
+                    <span id="statVal4" class="stat-value">0%</span>
+                </div>
+            </div>
+
             <div class="pce-grid">
                 <div class="pce-card" id="pce1Btn">
                     <div class="pce-card-icon">📖</div>
@@ -729,13 +796,13 @@
             <div id="connectedView" style="display: none;">
                 <p>Conectado com: <strong id="partnerName">...</strong></p>
                 
-                <div id="partnerStatusArea" style="margin: 20px 0; padding: 15px; border-radius: 12px; background: #f8f9fa;">
+                <div id="partnerStatusArea" style="margin: 20px 0; padding: 15px; border-radius: 12px; background: var(--ai-bg);">
                     <p id="partnerStatusText">Carregando status...</p>
                     <button id="nudgeBtn" class="btn btn-secondary" style="margin-top: 10px; font-size: 0.8em; padding: 8px;">🔔 Enviar Toque de Oração</button>
                 </div>
 
                 <div class="card" style="padding: 15px; text-align: left;">
-                    <h3 style="font-size: 0.9em; color: var(--primary); margin-top: 0;">Mural de Intenções</h3>
+                    <h3 style="font-size: 0.9em; color: var(--accent); margin-top: 0;">Mural de Intenções</h3>
                     <div style="display: flex; gap: 8px; margin-bottom: 15px;">
                         <input type="text" id="intentionInput" placeholder="Nova intenção..." style="flex: 1; padding: 8px; font-size: 0.9em;">
                         <button id="addIntentionBtn" class="btn btn-primary" style="width: auto; padding: 0 15px; font-size: 0.8em;">+</button>
@@ -767,8 +834,17 @@
         <div class="modal-content" style="max-width: 500px;">
             <h2>Meu Diário Espiritual</h2>
             <input type="text" id="diarySearch" placeholder="Buscar por data ou palavra..." style="margin-bottom: 20px;">
-            <div id="diaryList" style="max-height: 50vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;"></div>
+            <div id="diaryList" style="max-height: 50vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; padding: 10px;"></div>
             <button id="closeDiaryModal" class="btn btn-secondary" style="margin-top: 20px;">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Diary Detail Modal -->
+    <div id="diaryDetailModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 450px; text-align: left;">
+            <h2 id="detailDate" style="text-align: center;">Data</h2>
+            <div id="detailContent"></div>
+            <button id="closeDiaryDetailModal" class="btn btn-secondary" style="margin-top: 20px; width: 100%;">Voltar</button>
         </div>
     </div>
 
@@ -813,15 +889,6 @@
         </div>
     </div>
 
-    <!-- History View -->
-    <div id="historyView" style="display: none; width: 100%; max-width: 500px; padding: 20px;">
-        <div class="history-header">
-            <button id="backToMain" class="back-btn">← Voltar</button>
-            <h2 class="history-title">Histórico</h2>
-        </div>
-        <div id="historyList"></div>
-    </div>
-
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -842,8 +909,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Elements
             const mainView = document.getElementById('mainView');
-            const historyView = document.getElementById('historyView');
-            const historyList = document.getElementById('historyList');
             const markAsDoneButton = document.getElementById('markAsDone');
             const sliderWrapper = document.getElementById('sliderWrapper');
             const cardsWrapper = document.getElementById('cardsWrapper');
@@ -857,6 +922,7 @@
             const methodBtns = document.querySelectorAll('.method-btn');
             const prayerActions = document.getElementById('prayerActions');
             const successOverlay = document.getElementById('successOverlay');
+            const themeToggle = document.getElementById('themeToggle');
 
             // Modals
             const pceModal = document.getElementById('pceModal');
@@ -865,6 +931,7 @@
             const ruleOfLifeModal = document.getElementById('ruleOfLifeModal');
             const coupleModal = document.getElementById('coupleModal');
             const diaryModal = document.getElementById('diaryModal');
+            const diaryDetailModal = document.getElementById('diaryDetailModal');
             const welcomeModal = document.getElementById('welcomeModal');
 
             // Nav Items
@@ -874,7 +941,6 @@
             const navCouple = document.getElementById('navCouple');
 
             // Buttons
-            const pceBtn = document.getElementById('pceBtn');
             const nudgeBtn = document.getElementById('nudgeBtn');
             const saveWord = document.getElementById('saveWord');
             const saveSitDown = document.getElementById('saveSitDown');
@@ -885,6 +951,8 @@
             const STORAGE_KEY_COMPLETED = 'prayerCompletedDaysList';
             const STORAGE_KEY_USER_ID = 'prayerUserId';
             const STORAGE_KEY_USER_NAME = 'prayerUserName';
+            const STORAGE_KEY_THEME = 'prayerTheme';
+            
             let completedDays = JSON.parse(localStorage.getItem(STORAGE_KEY_COMPLETED) || '[]');
             let today = new Date();
             let gospelData = null;
@@ -899,6 +967,17 @@
             let partnerUnsubscribe = null;
             let nudgeUnsubscribe = null;
             let intentionsUnsubscribe = null;
+
+            // Theme Logic
+            const savedTheme = localStorage.getItem(STORAGE_KEY_THEME) || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            themeToggle.onclick = () => {
+                const current = document.documentElement.getAttribute('data-theme');
+                const next = current === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', next);
+                localStorage.setItem(STORAGE_KEY_THEME, next);
+            };
 
             // Initialization
             async function init() {
@@ -1026,15 +1105,42 @@
                 document.getElementById(id).classList.add('active');
             }
 
-            navHome.onclick = () => { setActiveNav('navHome'); mainView.style.display = 'flex'; historyView.style.display = 'none'; };
-            navPce.onclick = () => { setActiveNav('navPce'); pceModal.classList.add('show'); };
-            navDiary.onclick = () => { setActiveNav('navDiary'); diaryModal.classList.add('show'); };
+            navHome.onclick = () => { setActiveNav('navHome'); mainView.style.display = 'flex'; };
+            navPce.onclick = () => { setActiveNav('navPce'); pceModal.classList.add('show'); updatePceStats(); };
+            navDiary.onclick = () => { setActiveNav('navDiary'); diaryModal.classList.add('show'); loadDiary(); };
             navCouple.onclick = () => { setActiveNav('navCouple'); coupleModal.classList.add('show'); };
 
             // PCE Logic
-            pceBtn.onclick = () => pceModal.classList.add('show');
-            document.getElementById('closePceModal').onclick = () => pceModal.classList.remove('show');
-            
+            async function updatePceStats() {
+                const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+                const monthPrefix = `${today.getFullYear()}-${today.getMonth() + 1}-`;
+                
+                // Stat 1: Escuta da Palavra
+                const wordSnapshot = await db.collection('users').doc(userId).collection('pces').doc('word').get();
+                const wordCompleted = wordSnapshot.exists ? 100 : 0; // Simplified for now
+                
+                // Stat 2: Oração Conjugal (based on completed days)
+                const completedInMonth = completedDays.filter(d => d.startsWith(monthPrefix)).length;
+                const conjugalPerc = Math.round((completedInMonth / daysInMonth) * 100);
+                
+                // Stat 3: Dever de Sentar-se
+                const sitSnapshot = await db.collection('users').doc(userId).collection('pces').doc('sitdown').get();
+                const sitPerc = sitSnapshot.exists ? 100 : 0;
+                
+                // Stat 4: Regra de Vida
+                const ruleSnapshot = await db.collection('users').doc(userId).collection('pces').doc('ruleoflife').get();
+                const rulePerc = ruleSnapshot.exists ? 100 : 0;
+
+                document.getElementById('statBar1').style.width = `${wordCompleted}%`;
+                document.getElementById('statVal1').textContent = `${wordCompleted}%`;
+                document.getElementById('statBar2').style.width = `${conjugalPerc}%`;
+                document.getElementById('statVal2').textContent = `${conjugalPerc}%`;
+                document.getElementById('statBar3').style.width = `${sitPerc}%`;
+                document.getElementById('statVal3').textContent = `${sitPerc}%`;
+                document.getElementById('statBar4').style.width = `${rulePerc}%`;
+                document.getElementById('statVal4').textContent = `${rulePerc}%`;
+            }
+
             document.getElementById('pce1Btn').onclick = () => { pceModal.classList.remove('show'); wordModal.classList.add('show'); loadWord(); };
             document.getElementById('pce2Btn').onclick = () => { pceModal.classList.remove('show'); navCouple.click(); };
             document.getElementById('pce3Btn').onclick = () => { pceModal.classList.remove('show'); sitDownModal.classList.add('show'); loadSitDown(); };
@@ -1091,6 +1197,40 @@
             document.getElementById('closeWordModal').onclick = () => wordModal.classList.remove('show');
             document.getElementById('closeSitDownModal').onclick = () => sitDownModal.classList.remove('show');
             document.getElementById('closeRuleOfLifeModal').onclick = () => ruleOfLifeModal.classList.remove('show');
+            document.getElementById('closePceModal').onclick = () => { pceModal.classList.remove('show'); setActiveNav('navHome'); };
+
+            // Diary Logic
+            async function loadDiary() {
+                const list = document.getElementById('diaryList');
+                list.innerHTML = '<p>Carregando...</p>';
+                const snapshot = await db.collection('users').doc(userId).collection('prayers').orderBy('timestamp', 'desc').limit(20).get();
+                list.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const item = document.createElement('div');
+                    item.className = 'diary-item';
+                    item.innerHTML = `<div class="diary-date">${data.date}</div><div class="diary-method">${data.method || 'Simples'}</div>`;
+                    item.onclick = () => showDiaryDetail(data);
+                    list.appendChild(item);
+                });
+            }
+
+            function showDiaryDetail(data) {
+                const content = document.getElementById('detailContent');
+                document.getElementById('detailDate').textContent = data.date;
+                let html = `<p><strong>Método:</strong> ${data.method || 'Simples'}</p>`;
+                if (data.gospel) html += `<p><strong>Evangelho:</strong> ${data.gospel.referencia}</p>`;
+                if (data.reflections) {
+                    Object.entries(data.reflections).forEach(([key, val]) => {
+                        if (val) html += `<div style="margin-top:15px;"><strong style="text-transform:capitalize;">${key}:</strong><p>${val}</p></div>`;
+                    });
+                }
+                content.innerHTML = html;
+                diaryDetailModal.classList.add('show');
+            }
+
+            document.getElementById('closeDiaryDetailModal').onclick = () => diaryDetailModal.classList.remove('show');
+            document.getElementById('closeDiaryModal').onclick = () => { diaryModal.classList.remove('show'); setActiveNav('navHome'); };
 
             // AI Advice
             async function checkAIAdvice() {
@@ -1261,7 +1401,6 @@
             };
 
             closeCoupleModal.onclick = () => { coupleModal.classList.remove('show'); setActiveNav('navHome'); };
-            closeDiaryModal.onclick = () => { diaryModal.classList.remove('show'); setActiveNav('navHome'); };
             
             init();
         });
