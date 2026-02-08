@@ -579,6 +579,11 @@
             justify-content: space-between;
             align-items: center;
             border: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .intention-item.prayed {
+            border-color: var(--success);
+            box-shadow: 0 0 10px rgba(76, 175, 122, 0.2);
         }
         .intention-text { flex: 1; }
         .intention-author { font-size: 0.7em; color: var(--accent); font-weight: 700; margin-left: 10px; }
@@ -733,7 +738,17 @@
                     <div class="pce-card-title">Regra de Vida</div>
                 </div>
             </div>
-            <button id="closePceModal" class="btn btn-secondary" style="margin-top: 20px;">Fechar</button>
+            <button id="pceHistoryBtn" class="btn btn-secondary" style="margin-top: 20px;">Ver Histórico de PCEs</button>
+            <button id="closePceModal" class="btn btn-secondary" style="margin-top: 10px; border: none;">Fechar</button>
+        </div>
+    </div>
+
+    <!-- PCE History Modal -->
+    <div id="pceHistoryModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <h2>Histórico de PCEs</h2>
+            <div id="pceHistoryList" style="max-height: 50vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; padding: 10px; text-align: left;"></div>
+            <button id="closePceHistoryModal" class="btn btn-secondary" style="margin-top: 20px;">Voltar</button>
         </div>
     </div>
 
@@ -943,6 +958,7 @@
 
             // Modals
             const pceModal = document.getElementById('pceModal');
+            const pceHistoryModal = document.getElementById('pceHistoryModal');
             const wordModal = document.getElementById('wordModal');
             const sitDownModal = document.getElementById('sitDownModal');
             const ruleOfLifeModal = document.getElementById('ruleOfLifeModal');
@@ -969,6 +985,8 @@
             const saveConjugalTime = document.getElementById('saveConjugalTime');
             const saveNotif = document.getElementById('saveNotif');
             const shareReflectionBtn = document.getElementById('shareReflectionBtn');
+            const disconnectBtn = document.getElementById('disconnectBtn');
+            const pceHistoryBtn = document.getElementById('pceHistoryBtn');
 
             // State
             const STORAGE_KEY_COMPLETED = 'prayerCompletedDaysList';
@@ -1117,6 +1135,18 @@
                 }
             };
 
+            disconnectBtn.onclick = async () => {
+                if (confirm("Tem certeza que deseja desconectar do seu cônjuge?")) {
+                    if (coupleId) {
+                        await db.collection('users').doc(userId).update({ coupleId: null });
+                        if (partnerId) await db.collection('users').doc(partnerId).update({ coupleId: null });
+                        await db.collection('couples').doc(coupleId).delete();
+                        alert("Desconectado com sucesso.");
+                        location.reload();
+                    }
+                }
+            };
+
             saveConjugalTime.onclick = async () => {
                 const time = document.getElementById('conjugalTimeInput').value;
                 if (time && coupleId) {
@@ -1159,14 +1189,17 @@
             function setupIntentionsListener() {
                 if (!coupleId) return;
                 if (intentionsUnsubscribe) intentionsUnsubscribe();
-                intentionsUnsubscribe = db.collection('couples').doc(coupleId).collection('intentions').orderBy('createdAt', 'desc').limit(5).onSnapshot(snapshot => {
+                intentionsUnsubscribe = db.collection('couples').doc(coupleId).collection('intentions').orderBy('createdAt', 'desc').limit(10).onSnapshot(snapshot => {
                     const list = document.getElementById('intentionsList');
                     list.innerHTML = '';
                     snapshot.forEach(doc => {
                         const data = doc.data();
                         const item = document.createElement('div');
-                        item.className = 'intention-item';
+                        item.className = `intention-item ${data.prayed ? 'prayed' : ''}`;
                         item.innerHTML = `<span class="intention-text">${data.text}</span><span class="intention-author">${data.author}</span>`;
+                        item.onclick = async () => {
+                            await db.collection('couples').doc(coupleId).collection('intentions').doc(doc.id).update({ prayed: !data.prayed });
+                        };
                         list.appendChild(item);
                     });
                 });
@@ -1179,6 +1212,7 @@
                     await db.collection('couples').doc(coupleId).collection('intentions').add({
                         text,
                         author: userName,
+                        prayed: false,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     input.value = '';
@@ -1229,6 +1263,31 @@
                 document.getElementById('statVal4').textContent = `${rulePerc}%`;
             }
 
+            pceHistoryBtn.onclick = async () => {
+                const list = document.getElementById('pceHistoryList');
+                list.innerHTML = '<p>Carregando histórico...</p>';
+                pceHistoryModal.classList.add('show');
+                
+                const snapshot = await db.collection('users').doc(userId).collection('pce_history').orderBy('timestamp', 'desc').limit(20).get();
+                list.innerHTML = '';
+                if (snapshot.empty) {
+                    list.innerHTML = '<p style="text-align:center; color:var(--text-muted);">Nenhum histórico encontrado.</p>';
+                } else {
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const item = document.createElement('div');
+                        item.style.marginBottom = '15px';
+                        item.style.padding = '10px';
+                        item.style.borderBottom = '1px solid var(--border)';
+                        item.innerHTML = `
+                            <div style="font-weight:700; color:var(--accent); font-size:0.8em;">${data.type.toUpperCase()} - ${data.date}</div>
+                            <div style="font-size:0.9em; margin-top:5px;">${data.content}</div>
+                        `;
+                        list.appendChild(item);
+                    });
+                }
+            };
+
             document.getElementById('pce1Btn').onclick = () => { pceModal.classList.remove('show'); wordModal.classList.add('show'); loadWord(); };
             document.getElementById('pce2Btn').onclick = () => { pceModal.classList.remove('show'); navCouple.click(); };
             document.getElementById('pce3Btn').onclick = () => { pceModal.classList.remove('show'); sitDownModal.classList.add('show'); loadSitDown(); };
@@ -1246,7 +1305,11 @@
             saveWord.onclick = async () => {
                 const passage = document.getElementById('wordPassage').value;
                 const keyWord = document.getElementById('wordKeyWord').value;
+                const dateKey = getCurrentDateKey();
                 await db.collection('users').doc(userId).collection('pces').doc('word').set({ passage, keyWord, updatedAt: Date.now() });
+                await db.collection('users').doc(userId).collection('pce_history').add({
+                    type: 'Escuta da Palavra', date: dateKey, content: `Passagem: ${passage}\nPalavra: ${keyWord}`, timestamp: Date.now()
+                });
                 alert("Escuta da Palavra salva!");
                 wordModal.classList.remove('show');
             };
@@ -1264,6 +1327,9 @@
                 const date = document.getElementById('sitDownDate').value;
                 const notes = document.getElementById('sitDownNotes').value;
                 await db.collection('users').doc(userId).collection('pces').doc('sitdown').set({ date, notes, updatedAt: Date.now() });
+                await db.collection('users').doc(userId).collection('pce_history').add({
+                    type: 'Dever de Sentar-se', date: date, content: notes, timestamp: Date.now()
+                });
                 alert("Dever de Sentar-se salvo!");
                 sitDownModal.classList.remove('show');
             };
@@ -1277,7 +1343,11 @@
 
             saveRuleOfLife.onclick = async () => {
                 const text = document.getElementById('ruleOfLifeText').value;
+                const dateKey = getCurrentDateKey();
                 await db.collection('users').doc(userId).collection('pces').doc('ruleoflife').set({ text, updatedAt: Date.now() });
+                await db.collection('users').doc(userId).collection('pce_history').add({
+                    type: 'Regra de Vida', date: dateKey, content: text, timestamp: Date.now()
+                });
                 alert("Regra de Vida salva!");
                 ruleOfLifeModal.classList.remove('show');
             };
@@ -1286,6 +1356,7 @@
             document.getElementById('closeSitDownModal').onclick = () => sitDownModal.classList.remove('show');
             document.getElementById('closeRuleOfLifeModal').onclick = () => ruleOfLifeModal.classList.remove('show');
             document.getElementById('closePceModal').onclick = () => { pceModal.classList.remove('show'); setActiveNav('navHome'); };
+            document.getElementById('closePceHistoryModal').onclick = () => pceHistoryModal.classList.remove('show');
 
             // Diary Logic
             async function loadDiary() {
