@@ -18,7 +18,7 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
   const [reflections, setReflections] = useState<any>({});
   const [timeLeft, setTimeLeft] = useState(120);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   const gospel = liturgia?.evangelho;
   const gospelText = gospel?.texto || "";
@@ -58,22 +58,47 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
     ]
   }[method];
 
+  const playSino = () => {
+    try {
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      
+      const ctx = audioContextRef.current;
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+      
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      
+      const now = ctx.currentTime;
+      gainNode.gain.setValueAtTime(0.3, now);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1);
+      
+      oscillator.start(now);
+      oscillator.stop(now + 1);
+    } catch (error) {
+      console.error("Erro ao tocar sino:", error);
+    }
+  };
+
   useEffect(() => {
     let interval: any;
     if (isTimerRunning && timeLeft > 0) {
       interval = setInterval(() => setTimeLeft(t => t - 1), 1000);
-    } else if (timeLeft === 0) {
+    } else if (timeLeft === 0 && isTimerRunning) {
       setIsTimerRunning(false);
+      playSino();
     }
     return () => clearInterval(interval);
   }, [isTimerRunning, timeLeft]);
-
-  const playSound = () => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-01.mp3');
-    }
-    audioRef.current.play();
-  };
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) setCurrentStep(currentStep + 1);
@@ -150,7 +175,7 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
               </Button>
               <Button 
                 variant="ghost" 
-                onClick={playSound}
+                onClick={playSino}
                 className="text-[#c9a84c] font-bold flex gap-2"
               >
                 <Volume2 size={20} /> 🔔 Testar Som
