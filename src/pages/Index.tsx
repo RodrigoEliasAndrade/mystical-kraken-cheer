@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { db } from '@/lib/firebase';
-import { doc, onSnapshot, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 const Index = () => {
   const [liturgia, setLiturgia] = useState<any>(null);
@@ -23,8 +23,9 @@ const Index = () => {
   const [completedDays, setCompletedDays] = useState<string[]>([]);
   const [conjugalCompleted, setConjugalCompleted] = useState(false);
   
-  // Mock IDs for now - in a real app these would come from Auth
+  // Mock IDs for now
   const coupleId = "couple_demo_123";
+  const userId = "user_demo_456";
   const today = format(new Date(), 'yyyy-MM-dd');
 
   useEffect(() => {
@@ -33,11 +34,9 @@ const Index = () => {
       .then(data => setLiturgia(data))
       .catch(err => console.error("Erro ao buscar liturgia:", err));
 
-    // Load personal prayer completed days
     const saved = localStorage.getItem('prayerCompletedDays');
     if (saved) setCompletedDays(JSON.parse(saved));
 
-    // Sync Conjugal Prayer status from Firebase
     const prayerRef = doc(db, 'couples', coupleId, 'conjugalPrayer', 'dates');
     const unsubscribe = onSnapshot(prayerRef, (doc) => {
       if (doc.exists()) {
@@ -101,29 +100,10 @@ const Index = () => {
                 info="📍 Horário: 21h15"
                 onClick={() => setShowConjugalModal(true)}
               />
-              <PceCard 
-                icon="💬"
-                title="Dever de Sentar-se Mensal"
-                status="Aguardando"
-                info="📅 Próximo: 15/02"
-              />
-              <PceCard 
-                icon="📝"
-                title="Regra de Vida Mensal"
-                status="Aguardando"
-                info="📅 Revisão: 28/02"
-              />
-              <PceCard 
-                icon="👥"
-                title="Reunião de Equipe Mensal"
-                status="Pendente"
-                info="📅 Data: 20/02"
-              />
-              <PceCard 
-                icon="⛪"
-                title="Retiro Anual"
-                status="Pendente"
-              />
+              <PceCard icon="💬" title="Dever de Sentar-se Mensal" status="Aguardando" info="📅 Próximo: 15/02" />
+              <PceCard icon="📝" title="Regra de Vida Mensal" status="Aguardando" info="📅 Revisão: 28/02" />
+              <PceCard icon="👥" title="Reunião de Equipe Mensal" status="Pendente" info="📅 Data: 20/02" />
+              <PceCard icon="⛪" title="Retiro Anual" status="Pendente" />
             </div>
           </section>
 
@@ -152,6 +132,7 @@ const Index = () => {
         {showConjugalModal && (
           <ConjugalPrayerModal 
             coupleId={coupleId}
+            userId={userId}
             onClose={() => setShowConjugalModal(false)}
             onSuccess={() => setConjugalCompleted(true)}
           />
