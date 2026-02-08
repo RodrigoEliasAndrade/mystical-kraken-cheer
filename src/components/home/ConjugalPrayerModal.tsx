@@ -49,6 +49,59 @@ const ConjugalPrayerModal = ({ onClose, coupleId, userId, onSuccess }: ConjugalP
 
   const today = format(new Date(), 'yyyy-MM-dd');
 
+  const gerarConselhoSimulado = async (problema: string) => {
+    console.log("💬 Gerando conselho simulado...");
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    const problemaLower = problema.toLowerCase();
+    
+    if (problemaLower.includes('tempo') || problemaLower.includes('cansaço') || problemaLower.includes('ocupados')) {
+      return `**Por que é difícil encontrar tempo para Deus?**
+
+Padre Caffarel descobriu algo surpreendente: a dificuldade não está em não ter tempo - está em não entender que a oração conjugal não precisa ser longa.
+
+São Francisco de Sales nos ensina: "Meia hora de oração é o ideal, mas se não tiver tempo, dez minutos bastam. E se não tiver dez minutos, então você precisa de uma hora!" Ele brincava para mostrar que quando estamos ocupados demais, é quando MAIS precisamos de Deus.
+
+**Para esta semana:** Escolham apenas 3 minutos. Apenas 3! Sentem juntos, segurem as mãos, e um diz: "Obrigado Senhor por..." e o outro completa. Isso é oração conjugal. Simples assim.
+
+Como diz Mateus 18,20: "Onde dois ou três estiverem reunidos em meu nome, ali estou eu no meio deles."`;
+    } 
+    
+    if (problemaLower.includes('conflito') || problemaLower.includes('briga') || problemaLower.includes('desacordo')) {
+      return `**Rezar quando há tensão entre vocês**
+
+Santa Mônica rezou por 30 anos pelo marido difícil. Sabe o que ela descobriu? Que a oração não muda o outro primeiro - muda nosso coração.
+
+Padre Caffarel ensinava: "A oração conjugal não exige que estejam bem um com o outro. Exige apenas que estejam dispostos a estar juntos diante de Deus."
+
+**A verdade libertadora:** Vocês não precisam resolver o conflito ANTES de rezar. Rezem COM o conflito. Sentem lado a lado (sem olhar um para o outro se for difícil), e simplesmente digam: "Senhor, estamos aqui." Deus age no silêncio.
+
+Efésios 4,26 nos diz: "Não se ponha o sol sobre a vossa ira." Terminem o dia juntos diante de Deus, mesmo em silêncio.`;
+    }
+
+    if (problemaLower.includes('não sabe') || problemaLower.includes('como fazer') || problemaLower.includes('não sabemos')) {
+      return `**O segredo que ninguém conta sobre oração conjugal**
+
+Beato Charles de Foucauld passou anos no deserto. Sabe o que ele fazia? Silêncio. Apenas presença diante de Deus.
+
+A oração conjugal não precisa de palavras bonitas. Padre Caffarel dizia: "Estar juntos diante de Deus já É a oração."
+
+**Para começar HOJE:** Sentem lado a lado. Um lê o Evangelho do dia (pode ser deste app mesmo). O outro escuta. Depois, ficam 1 minuto em silêncio. Terminem com um Pai Nosso juntos. Pronto.
+
+Como Jesus disse em Mateus 6,6: "Quando orares, entra no teu quarto, fecha a porta e ora ao teu Pai em secreto." O quarto de vocês pode ser qualquer lugar onde estejam JUNTOS com Deus.`;
+    }
+
+    return `**Começar é mais importante que fazer perfeito**
+
+Santo Agostinho dizia: "Reza como podes, não como não podes." Vocês não precisam ser santos para começar a rezar juntos.
+
+Padre Caffarel fundou as Equipes de Nossa Senhora depois de perceber que casais precisam de SIMPLICIDADE, não de complicação.
+
+**Ação para hoje:** Escolham um momento fixo. Pode ser antes de dormir, pode ser no café da manhã. Apenas 2 minutos. Um de vocês agradece a Deus por UMA coisa, o outro também. Terminem com "Amém" juntos.
+
+Provérbios 3,5-6: "Confia no Senhor de todo o teu coração... e ele endireitará as tuas veredas."`;
+  };
+
   const handleMarkAsDone = async () => {
     setIsSubmitting(true);
     try {
@@ -82,48 +135,9 @@ const ConjugalPrayerModal = ({ onClose, coupleId, userId, onSuccess }: ConjugalP
     if (!problemText.trim()) return;
     setIsSubmitting(true);
     try {
-      // 1. Buscar histórico
-      const historyRef = collection(db, 'users', userId, 'spiritualGuidance');
-      const historySnapshot = await getDocs(query(historyRef, orderBy('timestamp', 'desc'), limit(5)));
-      const history = historySnapshot.docs.map(doc => doc.data());
-
-      // 2. Chamar Claude API (Simulado conforme solicitado)
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "x-api-key": "YOUR_API_KEY" // O usuário deve configurar isso
-        },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          messages: [{
-            role: "user",
-            content: `Você é um diretor espiritual católico expert em casais.
-O casal está tendo dificuldade com a oração conjugal: "${problemText}"
-Histórico de conselhos: ${JSON.stringify(history)}
-Gere um conselho curto (3-4 parágrafos) que:
-- Tenha 1 única ideia clara
-- Seja prático e aplicável HOJE
-- Cite 1 fonte (santo, Padre Caffarel, papa, Bíblia) com referência
-- Tenha tom amoroso como Jesus
-- Inclua ação concreta`
-          }]
-        })
-      });
-
-      // Nota: Como não temos uma chave real aqui, vou simular a resposta se a API falhar
-      let adviceText = "";
-      if (response.ok) {
-        const data = await response.json();
-        adviceText = data.content[0].text;
-      } else {
-        adviceText = "Meu caro casal, a oração é o oxigênio do amor. São João Paulo II dizia que 'a família que reza unida, permanece unida'. Hoje, não busquem a perfeição, mas a presença. Apenas segurem as mãos por 1 minuto e digam: 'Senhor, estamos aqui'. Essa pequena ação concreta abrirá as portas para a graça que vocês precisam.";
-      }
-
+      const adviceText = await gerarConselhoSimulado(problemText);
       setAdvice(adviceText);
       
-      // 3. Salvar no Firebase
       const docRef = await addDoc(collection(db, 'users', userId, 'spiritualGuidance'), {
         timestamp: Date.now(),
         problema: problemText,
@@ -235,6 +249,9 @@ Gere um conselho curto (3-4 parágrafos) que:
           {view === 'counseling' && (
             <motion.div key="counseling" className="space-y-6">
               <div className="text-center space-y-2">
+                <div className="inline-block px-3 py-1 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded-full mb-2">
+                  [BETA] Conselhos em fase de testes
+                </div>
                 <h2 className="text-xl font-bold text-[#2c3e6b]">💬 Aconselhamento Espiritual</h2>
                 <p className="text-sm text-muted-foreground">Conte-nos: o que está dificultando a oração conjugal?</p>
               </div>
@@ -260,7 +277,7 @@ Gere um conselho curto (3-4 parágrafos) que:
               <div className="text-center space-y-2">
                 <h2 className="text-xl font-bold text-[#2c3e6b]">🙏 Conselho Espiritual</h2>
               </div>
-              <div className="bg-[#e8f0f7] p-6 rounded-2xl text-sm leading-relaxed text-[#2c3e6b] italic">
+              <div className="bg-[#e8f0f7] p-6 rounded-2xl text-sm leading-relaxed text-[#2c3e6b] whitespace-pre-wrap">
                 {advice}
               </div>
               <div className="space-y-4">
@@ -292,7 +309,6 @@ Gere um conselho curto (3-4 parágrafos) que:
             </motion.div>
           )}
 
-          {/* Outras views (reason, success) permanecem similares... */}
           {view === 'reason' && (
             <motion.div key="reason" className="space-y-6">
               <div className="text-center space-y-2">
