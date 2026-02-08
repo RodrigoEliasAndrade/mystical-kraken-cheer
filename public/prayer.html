@@ -784,13 +784,24 @@
             <div id="notConnectedView">
                 <p>Seu nome: <strong id="displayMyName">...</strong></p>
                 <p>Conecte-se com seu cônjuge para acompanharem a oração um do outro.</p>
-                <button id="generateInviteBtn" class="btn btn-primary">Gerar Link de Convite</button>
+                
+                <div style="margin: 20px 0;">
+                    <button id="generateInviteBtn" class="btn btn-primary">Gerar Código de Convite</button>
+                </div>
+                
                 <div id="inviteLinkArea" style="display: none; margin-top: 20px;">
-                    <input type="text" id="inviteLinkInput" readonly style="font-size: 0.8em; margin-bottom: 10px;">
+                    <p style="font-size: 0.8em; color: var(--accent); font-weight: 700;">SEU CÓDIGO:</p>
+                    <input type="text" id="inviteLinkInput" readonly style="text-align: center; font-size: 1.5em; letter-spacing: 5px; margin-bottom: 10px;">
                     <div style="display: flex; gap: 10px;">
-                        <button id="copyInviteBtn" class="btn btn-secondary" style="padding: 10px; font-size: 0.7em;">Copiar Link</button>
+                        <button id="copyInviteBtn" class="btn btn-secondary" style="padding: 10px; font-size: 0.7em;">Copiar</button>
                         <button id="shareWhatsappBtn" class="btn btn-primary" style="padding: 10px; font-size: 0.7em; background: #25D366; border: none;">WhatsApp</button>
                     </div>
+                </div>
+
+                <div style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px;">
+                    <p style="font-size: 0.9em;">Já tem um código?</p>
+                    <input type="text" id="joinCodeInput" placeholder="Digite o código aqui" style="text-align: center; text-transform: uppercase; margin-bottom: 10px;">
+                    <button id="joinCoupleBtn" class="btn btn-secondary">Conectar</button>
                 </div>
             </div>
             <div id="connectedView" style="display: none;">
@@ -946,6 +957,10 @@
             const saveSitDown = document.getElementById('saveSitDown');
             const saveRuleOfLife = document.getElementById('saveRuleOfLife');
             const addIntentionBtn = document.getElementById('addIntentionBtn');
+            const shareBtn = document.getElementById('shareBtn');
+            const generateInviteBtn = document.getElementById('generateInviteBtn');
+            const joinCoupleBtn = document.getElementById('joinCoupleBtn');
+            const saveConjugalTime = document.getElementById('saveConjugalTime');
 
             // State
             const STORAGE_KEY_COMPLETED = 'prayerCompletedDaysList';
@@ -967,6 +982,7 @@
             let partnerUnsubscribe = null;
             let nudgeUnsubscribe = null;
             let intentionsUnsubscribe = null;
+            let timerInterval = null;
 
             // Theme Logic
             const savedTheme = localStorage.getItem(STORAGE_KEY_THEME) || 'light';
@@ -1032,6 +1048,54 @@
                     }
                 });
             }
+
+            // Invite System Logic
+            generateInviteBtn.onclick = async () => {
+                const code = Math.random().toString(36).substr(2, 6).toUpperCase();
+                await db.collection('invites').doc(code).set({
+                    creatorId: userId,
+                    creatorName: userName,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                document.getElementById('inviteLinkInput').value = code;
+                document.getElementById('inviteLinkArea').style.display = 'block';
+            };
+
+            joinCoupleBtn.onclick = async () => {
+                const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
+                if (!code) return;
+                
+                const inviteDoc = await db.collection('invites').doc(code).get();
+                if (inviteDoc.exists) {
+                    const inviteData = inviteDoc.data();
+                    const newCoupleId = 'couple_' + Math.random().toString(36).substr(2, 9);
+                    
+                    await db.collection('couples').doc(newCoupleId).set({
+                        partner1: inviteData.creatorId,
+                        partner1Name: inviteData.creatorName,
+                        partner2: userId,
+                        partner2Name: userName,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    await db.collection('users').doc(userId).update({ coupleId: newCoupleId });
+                    await db.collection('users').doc(inviteData.creatorId).update({ coupleId: newCoupleId });
+                    await db.collection('invites').doc(code).delete();
+                    
+                    alert("Conectado com sucesso!");
+                    location.reload();
+                } else {
+                    alert("Código inválido ou expirado.");
+                }
+            };
+
+            saveConjugalTime.onclick = async () => {
+                const time = document.getElementById('conjugalTimeInput').value;
+                if (time && coupleId) {
+                    await db.collection('couples').doc(coupleId).update({ conjugalTime: time });
+                    alert("Horário da Oração Conjugal salvo!");
+                }
+            };
 
             function setupPartnerStatusListener() {
                 if (!partnerId) return;
@@ -1115,19 +1179,15 @@
                 const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
                 const monthPrefix = `${today.getFullYear()}-${today.getMonth() + 1}-`;
                 
-                // Stat 1: Escuta da Palavra
                 const wordSnapshot = await db.collection('users').doc(userId).collection('pces').doc('word').get();
-                const wordCompleted = wordSnapshot.exists ? 100 : 0; // Simplified for now
+                const wordCompleted = wordSnapshot.exists ? 100 : 0;
                 
-                // Stat 2: Oração Conjugal (based on completed days)
                 const completedInMonth = completedDays.filter(d => d.startsWith(monthPrefix)).length;
                 const conjugalPerc = Math.round((completedInMonth / daysInMonth) * 100);
                 
-                // Stat 3: Dever de Sentar-se
                 const sitSnapshot = await db.collection('users').doc(userId).collection('pces').doc('sitdown').get();
                 const sitPerc = sitSnapshot.exists ? 100 : 0;
                 
-                // Stat 4: Regra de Vida
                 const ruleSnapshot = await db.collection('users').doc(userId).collection('pces').doc('ruleoflife').get();
                 const rulePerc = ruleSnapshot.exists ? 100 : 0;
 
@@ -1344,6 +1404,17 @@
                             ta.dataset.label = data.label;
                             card.appendChild(ta);
                         }
+                        if (data.timer) {
+                            const timerDiv = document.createElement('div');
+                            timerDiv.className = 'timer-display';
+                            timerDiv.textContent = '02:00';
+                            const startBtn = document.createElement('button');
+                            startBtn.className = 'btn btn-secondary';
+                            startBtn.textContent = 'Iniciar Silêncio';
+                            startBtn.onclick = () => startTimer(data.timer, timerDiv);
+                            card.appendChild(timerDiv);
+                            card.appendChild(startBtn);
+                        }
                     }
                     cardsWrapper.appendChild(card);
                 });
@@ -1351,6 +1422,21 @@
                 updateSlider();
                 sliderWrapper.style.display = 'block';
                 prayerActions.style.display = 'flex';
+            }
+
+            function startTimer(seconds, display) {
+                if (timerInterval) clearInterval(timerInterval);
+                let timeLeft = seconds;
+                timerInterval = setInterval(() => {
+                    const mins = Math.floor(timeLeft / 60);
+                    const secs = timeLeft % 60;
+                    display.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        alert("Tempo de silêncio concluído! 🙏");
+                    }
+                    timeLeft--;
+                }, 1000);
             }
 
             function updateSlider() {
@@ -1367,6 +1453,18 @@
 
             nextBtn.onclick = () => { if (currentCardIndex < allCardsData.length - 1) { currentCardIndex++; updateSlider(); } };
             prevBtn.onclick = () => { if (currentCardIndex > 0) { currentCardIndex--; updateSlider(); } };
+
+            shareBtn.onclick = () => {
+                if (navigator.share && gospelData) {
+                    navigator.share({
+                        title: 'Evangelho do Dia',
+                        text: `*${gospelData.titulo}*\n\n${gospelData.texto}\n\nRef: ${gospelData.referencia}`,
+                        url: window.location.href
+                    });
+                } else {
+                    alert("Compartilhamento não suportado neste navegador.");
+                }
+            };
 
             markAsDoneButton.onclick = async () => {
                 const dateKey = getCurrentDateKey();
