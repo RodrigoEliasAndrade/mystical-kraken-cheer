@@ -50,68 +50,48 @@ const ConjugalPrayerModal = ({ onClose, coupleId, userId, onSuccess }: ConjugalP
   const today = format(new Date(), 'yyyy-MM-dd');
 
   const gerarConselhoSimulado = async (problema: string) => {
-    console.log("💬 Gerando conselho simulado...");
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
     const problemaLower = problema.toLowerCase();
     
     if (problemaLower.includes('tempo') || problemaLower.includes('cansaço') || problemaLower.includes('ocupados')) {
-      return `**Por que é difícil encontrar tempo para Deus?**
-
-Padre Caffarel descobriu algo surpreendente: a dificuldade não está em não ter tempo - está em não entender que a oração conjugal não precisa ser longa.
-
-São Francisco de Sales nos ensina: "Meia hora de oração é o ideal, mas se não tiver tempo, dez minutos bastam. E se não tiver dez minutos, então você precisa de uma hora!" Ele brincava para mostrar que quando estamos ocupados demais, é quando MAIS precisamos de Deus.
-
-**Para esta semana:** Escolham apenas 3 minutos. Apenas 3! Sentem juntos, segurem as mãos, e um diz: "Obrigado Senhor por..." e o outro completa. Isso é oração conjugal. Simples assim.
-
-Como diz Mateus 18,20: "Onde dois ou três estiverem reunidos em meu nome, ali estou eu no meio deles."`;
+      return `**Por que é difícil encontrar tempo para Deus?**\n\nPadre Caffarel descobriu algo surpreendente: a dificuldade não está em não ter tempo - está em não entender que a oração conjugal não precisa ser longa.\n\nSão Francisco de Sales nos ensina: "Meia hora de oração é o ideal, mas se não tiver tempo, dez minutos bastam."\n\n**Para esta semana:** Escolham apenas 3 minutos. Sentem juntos, segurem as mãos, e um diz: "Obrigado Senhor por..." e o outro completa. Simples assim.`;
     } 
-    
     if (problemaLower.includes('conflito') || problemaLower.includes('briga') || problemaLower.includes('desacordo')) {
-      return `**Rezar quando há tensão entre vocês**
-
-Santa Mônica rezou por 30 anos pelo marido difícil. Sabe o que ela descobriu? Que a oração não muda o outro primeiro - muda nosso coração.
-
-Padre Caffarel ensinava: "A oração conjugal não exige que estejam bem um com o outro. Exige apenas que estejam dispostos a estar juntos diante de Deus."
-
-**A verdade libertadora:** Vocês não precisam resolver o conflito ANTES de rezar. Rezem COM o conflito. Sentem lado a lado (sem olhar um para o outro se for difícil), e simplesmente digam: "Senhor, estamos aqui." Deus age no silêncio.
-
-Efésios 4,26 nos diz: "Não se ponha o sol sobre a vossa ira." Terminem o dia juntos diante de Deus, mesmo em silêncio.`;
+      return `**Rezar quando há tensão entre vocês**\n\nSanta Mônica rezou por 30 anos pelo marido difícil. Sabe o que ela descobriu? Que a oração não muda o outro primeiro - muda nosso coração.\n\n**A verdade libertadora:** Vocês não precisam resolver o conflito ANTES de rezar. Rezem COM o conflito. Sentem lado a lado e simplesmente digam: "Senhor, estamos aqui." Deus age no silêncio.`;
     }
-
-    if (problemaLower.includes('não sabe') || problemaLower.includes('como fazer') || problemaLower.includes('não sabemos')) {
-      return `**O segredo que ninguém conta sobre oração conjugal**
-
-Beato Charles de Foucauld passou anos no deserto. Sabe o que ele fazia? Silêncio. Apenas presença diante de Deus.
-
-A oração conjugal não precisa de palavras bonitas. Padre Caffarel dizia: "Estar juntos diante de Deus já É a oração."
-
-**Para começar HOJE:** Sentem lado a lado. Um lê o Evangelho do dia (pode ser deste app mesmo). O outro escuta. Depois, ficam 1 minuto em silêncio. Terminem com um Pai Nosso juntos. Pronto.
-
-Como Jesus disse em Mateus 6,6: "Quando orares, entra no teu quarto, fecha a porta e ora ao teu Pai em secreto." O quarto de vocês pode ser qualquer lugar onde estejam JUNTOS com Deus.`;
-    }
-
-    return `**Começar é mais importante que fazer perfeito**
-
-Santo Agostinho dizia: "Reza como podes, não como não podes." Vocês não precisam ser santos para começar a rezar juntos.
-
-Padre Caffarel fundou as Equipes de Nossa Senhora depois de perceber que casais precisam de SIMPLICIDADE, não de complicação.
-
-**Ação para hoje:** Escolham um momento fixo. Pode ser antes de dormir, pode ser no café da manhã. Apenas 2 minutos. Um de vocês agradece a Deus por UMA coisa, o outro também. Terminem com "Amém" juntos.
-
-Provérbios 3,5-6: "Confia no Senhor de todo o teu coração... e ele endireitará as tuas veredas."`;
+    return `**Começar é mais importante que fazer perfeito**\n\nSanto Agostinho dizia: "Reza como podes, não como não podes." Vocês não precisam ser santos para começar a rezar juntos.\n\n**Ação para hoje:** Escolham um momento fixo. Apenas 2 minutos. Um de vocês agradece a Deus por UMA coisa, o outro também. Terminem com "Amém" juntos.`;
   };
 
   const handleMarkAsDone = async () => {
     setIsSubmitting(true);
     try {
       const prayerRef = doc(db, 'couples', coupleId, 'conjugalPrayer', 'dates');
-      await setDoc(prayerRef, { [today]: true }, { merge: true });
+      await setDoc(prayerRef, { 
+        [today]: { completed: true, timestamp: Date.now() } 
+      }, { merge: true });
+      
       setView('success');
       onSuccess();
       setTimeout(() => onClose(), 2500);
     } catch (error) {
       toast.error("Erro ao salvar.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveMissed = async () => {
+    setIsSubmitting(true);
+    try {
+      const missedRef = doc(db, 'couples', coupleId, 'conjugalPrayer', 'missed');
+      await setDoc(missedRef, { 
+        [today]: { reasons: selectedReasons, timestamp: Date.now() } 
+      }, { merge: true });
+      
+      toast.info("Entendemos. Vamos tentar amanhã! 💪");
+      onClose();
+    } catch (error) {
+      toast.error("Erro ao salvar justificativa.");
     } finally {
       setIsSubmitting(false);
     }
@@ -137,7 +117,6 @@ Provérbios 3,5-6: "Confia no Senhor de todo o teu coração... e ele endireitar
     try {
       const adviceText = await gerarConselhoSimulado(problemText);
       setAdvice(adviceText);
-      
       const docRef = await addDoc(collection(db, 'users', userId, 'spiritualGuidance'), {
         timestamp: Date.now(),
         problema: problemText,
@@ -145,7 +124,6 @@ Provérbios 3,5-6: "Confia no Senhor de todo o teu coração... e ele endireitar
         tipo: 'oracao_conjugal',
         feedback: null
       });
-      
       setCurrentAdviceId(docRef.id);
       setView('advice');
     } catch (error) {
@@ -159,7 +137,6 @@ Provérbios 3,5-6: "Confia no Senhor de todo o teu coração... e ele endireitar
     try {
       const adviceRef = doc(db, 'users', userId, 'spiritualGuidance', currentAdviceId);
       await updateDoc(adviceRef, { feedback: type });
-      
       if (type === '🤔 Não sei' || type === '👎 Não gostei') {
         setView('feedback_reason');
       } else {
@@ -324,8 +301,8 @@ Provérbios 3,5-6: "Confia no Senhor de todo o teu coração... e ele endireitar
                   </div>
                 ))}
               </div>
-              <Button onClick={() => { toast.info("Entendemos. Vamos tentar amanhã! 💪"); onClose(); }} disabled={selectedReasons.length === 0} className="w-full h-14 rounded-2xl bg-[#2c3e6b] text-white font-bold">
-                Enviar Resposta
+              <Button onClick={handleSaveMissed} disabled={selectedReasons.length === 0 || isSubmitting} className="w-full h-14 rounded-2xl bg-[#2c3e6b] text-white font-bold">
+                {isSubmitting ? "Salvando..." : "Enviar Resposta"}
               </Button>
             </motion.div>
           )}

@@ -41,7 +41,8 @@ const Index = () => {
     const unsubscribe = onSnapshot(prayerRef, (doc) => {
       if (doc.exists()) {
         const data = doc.data();
-        setConjugalCompleted(!!data[today]);
+        // Verifica se existe o registro de hoje e se o campo 'completed' é true
+        setConjugalCompleted(!!data[today]?.completed);
       }
     });
 
