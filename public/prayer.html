@@ -703,6 +703,56 @@
         .prayer-library-title { font-weight: 700; color: var(--accent); margin-bottom: 5px; }
         .prayer-library-preview { font-size: 0.85em; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+        /* Home PCE Summary */
+        .home-pce-summary {
+            margin-top: 20px;
+            text-align: left;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+        .home-pce-item {
+            margin-bottom: 15px;
+        }
+        .home-pce-label {
+            font-size: 0.75em;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .home-pce-value {
+            font-size: 0.95em;
+            line-height: 1.4;
+            color: var(--text);
+        }
+
+        /* Ambient Sound Controls */
+        .sound-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        .sound-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.8em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .sound-btn.active {
+            border-color: var(--accent);
+            background: var(--ai-bg);
+            color: var(--accent);
+            font-weight: 700;
+        }
+
         @media (max-width: 550px) {
             .slider-card { padding: 35px 20px; min-height: 400px; }
             .modal-content { padding: 25px; }
@@ -741,6 +791,7 @@
         <h1>Equipes de Nossa Senhora</h1>
         <p id="headerNames" style="font-size: 0.95em; opacity: 0.9; margin-top: 5px; text-transform: none; font-weight: 700;"></p>
         <p id="liturgicalCelebration" style="font-size: 0.8em; font-style: italic; margin-top: 8px; opacity: 0.9; line-height: 1.4;"></p>
+        <p id="saintOfTheDay" style="font-size: 0.75em; margin-top: 5px; opacity: 0.8; font-weight: 700;"></p>
         <p style="margin-top: 10px; font-weight: 700; letter-spacing: 1px;">ORAÇÃO DIÁRIA</p>
     </header>
 
@@ -1072,6 +1123,17 @@
                     <div class="calendar-day-name">Sáb</div>
                 </div>
             </div>
+
+            <div id="homePceSummary" class="home-pce-summary">
+                <div class="home-pce-item">
+                    <span class="home-pce-label">Minha Regra de Vida</span>
+                    <div id="homeRuleValue" class="home-pce-value">Nenhuma regra definida para este mês.</div>
+                </div>
+                <div class="home-pce-item">
+                    <span class="home-pce-label">Última Escuta da Palavra</span>
+                    <div id="homeWordValue" class="home-pce-value">Nenhum registro recente.</div>
+                </div>
+            </div>
         </div>
 
         <div class="method-selector">
@@ -1096,6 +1158,10 @@
             <button id="shareBtn" class="btn btn-secondary">Compartilhar Evangelho</button>
         </div>
     </div>
+
+    <!-- Audio Elements -->
+    <audio id="audioRain" loop src="https://www.soundjay.com/nature/rain-01.mp3"></audio>
+    <audio id="audioChant" loop src="https://www.soundjay.com/misc/sounds/bell-ringing-01.mp3"></audio>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -1202,6 +1268,7 @@
             let timerInterval = null;
             let currentDiaryEntry = null;
             let allDiaryEntries = [];
+            let currentAudio = null;
 
             const commonPrayers = [
                 {
@@ -1232,10 +1299,10 @@
             // Notification Logic
             notificationBtn.onclick = () => notificationMenu.classList.toggle('show');
             
-            const savedNotif = JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIF) || '{"enabled":false,"time":"08:00"}');
-            document.getElementById('notifToggle').checked = savedNotif.enabled;
-            document.getElementById('notifTime').value = savedNotif.time;
-            if (savedNotif.enabled) notificationBtn.classList.replace('inactive', 'active');
+            const savedNotifSettings = JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIF) || '{"enabled":false,"time":"08:00"}');
+            document.getElementById('notifToggle').checked = savedNotifSettings.enabled;
+            document.getElementById('notifTime').value = savedNotifSettings.time;
+            if (savedNotifSettings.enabled) notificationBtn.classList.replace('inactive', 'active');
 
             saveNotif.onclick = () => {
                 const enabled = document.getElementById('notifToggle').checked;
@@ -1298,6 +1365,7 @@
                 renderCalendar(today.getMonth(), today.getFullYear(), calendarGrid, calendarMonthLabel);
                 updateDayCounter();
                 fetchLiturgia();
+                loadHomePCEs();
             }
 
             async function syncUser() {
@@ -1311,6 +1379,17 @@
                     if (coupleId) setupCoupleListeners();
                 }
                 document.getElementById('headerNames').textContent = userName;
+            }
+
+            async function loadHomePCEs() {
+                const ruleDoc = await db.collection('users').doc(userId).collection('pces').doc('ruleoflife').get();
+                if (ruleDoc.exists) {
+                    document.getElementById('homeRuleValue').textContent = ruleDoc.data().text || 'Nenhuma regra definida.';
+                }
+                const wordDoc = await db.collection('users').doc(userId).collection('pces').doc('word').get();
+                if (wordDoc.exists) {
+                    document.getElementById('homeWordValue').textContent = wordDoc.data().passage || 'Nenhum registro recente.';
+                }
             }
 
             function setupCoupleListeners() {
@@ -1483,7 +1562,7 @@
                 document.getElementById(id).classList.add('active');
             }
 
-            navHome.onclick = () => { setActiveNav('navHome'); mainView.style.display = 'flex'; };
+            navHome.onclick = () => { setActiveNav('navHome'); mainView.style.display = 'flex'; loadHomePCEs(); };
             navPce.onclick = () => { setActiveNav('navPce'); pceModal.classList.add('show'); updatePceStats(); };
             navDiary.onclick = () => { setActiveNav('navDiary'); diaryModal.classList.add('show'); loadDiary(); };
             navCouple.onclick = () => { setActiveNav('navCouple'); coupleModal.classList.add('show'); };
@@ -1836,6 +1915,7 @@
                     appHeader.style.backgroundColor = color;
                     
                     if (data.celebracao) document.getElementById('liturgicalCelebration').textContent = data.celebracao;
+                    if (data.santo_do_dia) document.getElementById('saintOfTheDay').textContent = `Santo do Dia: ${data.santo_do_dia}`;
                     if (data.evangelho) gospelData = data.evangelho;
                 } catch (e) { console.error(e); }
             }
@@ -1892,11 +1972,30 @@
                             const timerDiv = document.createElement('div');
                             timerDiv.className = 'timer-display';
                             timerDiv.textContent = '02:00';
+                            
+                            const soundControls = document.createElement('div');
+                            soundControls.className = 'sound-controls';
+                            
+                            const rainBtn = document.createElement('button');
+                            rainBtn.className = 'sound-btn';
+                            rainBtn.innerHTML = '🌧️ Chuva';
+                            rainBtn.onclick = () => toggleSound('rain', rainBtn);
+                            
+                            const chantBtn = document.createElement('button');
+                            chantBtn.className = 'sound-btn';
+                            chantBtn.innerHTML = '🔔 Sinos';
+                            chantBtn.onclick = () => toggleSound('chant', chantBtn);
+                            
+                            soundControls.appendChild(rainBtn);
+                            soundControls.appendChild(chantBtn);
+                            
                             const startBtn = document.createElement('button');
                             startBtn.className = 'btn btn-secondary';
                             startBtn.textContent = 'Iniciar Silêncio';
                             startBtn.onclick = () => startTimer(data.timer, timerDiv);
+                            
                             card.appendChild(timerDiv);
+                            card.appendChild(soundControls);
                             card.appendChild(startBtn);
                         }
                     }
@@ -1908,6 +2007,25 @@
                 prayerActions.style.display = 'flex';
             }
 
+            function toggleSound(type, btn) {
+                const rain = document.getElementById('audioRain');
+                const chant = document.getElementById('audioChant');
+                
+                document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
+                
+                if (currentAudio) {
+                    currentAudio.pause();
+                    if (currentAudio === (type === 'rain' ? rain : chant)) {
+                        currentAudio = null;
+                        return;
+                    }
+                }
+                
+                currentAudio = type === 'rain' ? rain : chant;
+                currentAudio.play();
+                btn.classList.add('active');
+            }
+
             function startTimer(seconds, display) {
                 if (timerInterval) clearInterval(timerInterval);
                 let timeLeft = seconds;
@@ -1917,6 +2035,7 @@
                     display.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
                     if (timeLeft <= 0) {
                         clearInterval(timerInterval);
+                        if (currentAudio) currentAudio.pause();
                         alert("Tempo de silêncio concluído! 🙏");
                     }
                     timeLeft--;
@@ -1968,6 +2087,7 @@
                     prayerActions.style.display = 'none';
                     renderCalendar(today.getMonth(), today.getFullYear(), calendarGrid, calendarMonthLabel);
                     updateDayCounter();
+                    loadHomePCEs();
                 }, 2000);
             };
 
