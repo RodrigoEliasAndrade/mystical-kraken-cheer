@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface PrayerMethodsProps {
@@ -36,16 +36,16 @@ const PrayerMethods = ({ onClose, onSelect }: PrayerMethodsProps) => {
         <div className="space-y-4">
           <Button 
             onClick={() => onSelect('simples')}
-            className="w-full h-16 rounded-2xl justify-between px-6 text-lg font-bold bg-[#c9a84c] hover:bg-[#b8973d] text-white shadow-lg shadow-yellow-200/30 border-none"
+            variant="outline"
+            className="w-full h-16 rounded-2xl text-lg font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5 bg-white active:bg-[#c9a84c] active:text-white active:border-[#c9a84c] transition-all"
           >
             Liturgia Simples
-            <Play size={20} fill="currentColor" />
           </Button>
           
           <Button 
             onClick={() => onSelect('lectio')}
             variant="outline" 
-            className="w-full h-16 rounded-2xl text-lg font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5 bg-white"
+            className="w-full h-16 rounded-2xl text-lg font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5 bg-white active:bg-[#c9a84c] active:text-white active:border-[#c9a84c] transition-all"
           >
             Lectio Divina
           </Button>
@@ -53,7 +53,7 @@ const PrayerMethods = ({ onClose, onSelect }: PrayerMethodsProps) => {
           <Button 
             onClick={() => onSelect('rapido')}
             variant="outline" 
-            className="w-full h-16 rounded-2xl text-lg font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5 bg-white"
+            className="w-full h-16 rounded-2xl text-lg font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5 bg-white active:bg-[#c9a84c] active:text-white active:border-[#c9a84c] transition-all"
           >
             Método Rápido
           </Button>
