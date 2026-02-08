@@ -689,6 +689,20 @@
         .stat-bar-fill { height: 100%; background: var(--success); transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .stat-value { font-size: 0.85em; font-weight: 700; width: 45px; text-align: right; color: var(--accent); }
 
+        /* Common Prayers Styles */
+        .prayer-library-item {
+            background: var(--bg);
+            padding: 20px;
+            border-radius: var(--radius-md);
+            margin-bottom: 15px;
+            text-align: left;
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+        .prayer-library-item:hover { border-color: var(--accent); }
+        .prayer-library-title { font-weight: 700; color: var(--accent); margin-bottom: 5px; }
+        .prayer-library-preview { font-size: 0.85em; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
         @media (max-width: 550px) {
             .slider-card { padding: 35px 20px; min-height: 400px; }
             .modal-content { padding: 25px; }
@@ -701,6 +715,7 @@
 
     <header class="app-header" id="appHeader">
         <div class="header-icons">
+            <button id="commonPrayersBtn" class="icon-btn" title="Orações Comuns">📜</button>
             <button id="themeToggle" class="icon-btn" title="Alternar Tema">🌓</button>
             <button id="notificationBtn" class="icon-btn notification-btn inactive" title="Notificações">🔕</button>
         </div>
@@ -762,6 +777,26 @@
             <p>Para começar sua jornada de oração, como podemos te chamar?</p>
             <input type="text" id="userNameInput" placeholder="Seu nome" style="margin-bottom: 25px;">
             <button id="startAppBtn" class="btn btn-primary">Começar</button>
+        </div>
+    </div>
+
+    <!-- Common Prayers Modal -->
+    <div id="commonPrayersModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 480px;">
+            <h2>Orações Comuns</h2>
+            <div id="prayerLibraryList" style="max-height: 60vh; overflow-y: auto; margin-top: 20px;">
+                <!-- Prayers will be injected here -->
+            </div>
+            <button id="closeCommonPrayersModal" class="btn btn-secondary" style="margin-top: 25px;">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Prayer Detail Modal -->
+    <div id="prayerDetailModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 480px; text-align: left;">
+            <h2 id="prayerDetailTitle" style="text-align: center;">Título</h2>
+            <div id="prayerDetailText" style="font-size: 1.1em; line-height: 1.8; margin-top: 20px; white-space: pre-wrap;">Texto da oração...</div>
+            <button id="closePrayerDetailModal" class="btn btn-secondary" style="margin-top: 25px; width: 100%;">Voltar</button>
         </div>
     </div>
 
@@ -863,6 +898,9 @@
         <div class="modal-content" style="max-width: 450px;">
             <h2>Dever de Sentar-se</h2>
             <p>O diálogo mensal do casal sob o olhar de Deus.</p>
+            <div style="margin-bottom: 20px;">
+                <button id="sitDownGuideBtn" class="btn btn-secondary" style="padding: 10px; font-size: 0.85em;">📖 Ver Guia de Diálogo</button>
+            </div>
             <div class="time-input-container" style="text-align: left;">
                 <label class="time-input-label">Data do Diálogo</label>
                 <input type="date" id="sitDownDate">
@@ -870,6 +908,22 @@
             <textarea id="sitDownNotes" placeholder="Notas ou pontos principais do diálogo..."></textarea>
             <button id="saveSitDown" class="btn btn-primary">Salvar Registro</button>
             <button id="closeSitDownModal" class="btn btn-secondary" style="margin-top: 12px;">Voltar</button>
+        </div>
+    </div>
+
+    <!-- Sit Down Guide Modal -->
+    <div id="sitDownGuideModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 450px; text-align: left;">
+            <h2>Guia: Dever de Sentar-se</h2>
+            <div style="font-size: 0.95em; line-height: 1.6; margin-top: 20px;">
+                <p><strong>1. Início:</strong> Comecem com uma oração ao Espírito Santo.</p>
+                <p><strong>2. Revisão:</strong> Como foi o mês? Quais foram as alegrias e dificuldades?</p>
+                <p><strong>3. PCEs:</strong> Como estamos progredindo nos nossos Pontos Concretos de Esforço?</p>
+                <p><strong>4. Diálogo:</strong> Há algo que precisamos conversar abertamente? (Finanças, filhos, sexualidade, espiritualidade).</p>
+                <p><strong>5. Regra de Vida:</strong> Vamos definir ou revisar nossa Regra de Vida para o próximo mês?</p>
+                <p><strong>6. Encerramento:</strong> Rezem juntos o Pai Nosso ou o Magnificat.</p>
+            </div>
+            <button id="closeSitDownGuideModal" class="btn btn-secondary" style="margin-top: 25px; width: 100%;">Entendido</button>
         </div>
     </div>
 
@@ -1081,12 +1135,14 @@
             const themeToggle = document.getElementById('themeToggle');
             const notificationBtn = document.getElementById('notificationBtn');
             const notificationMenu = document.getElementById('notificationMenu');
+            const commonPrayersBtn = document.getElementById('commonPrayersBtn');
 
             // Modals
             const pceModal = document.getElementById('pceModal');
             const pceHistoryModal = document.getElementById('pceHistoryModal');
             const wordModal = document.getElementById('wordModal');
             const sitDownModal = document.getElementById('sitDownModal');
+            const sitDownGuideModal = document.getElementById('sitDownGuideModal');
             const ruleOfLifeModal = document.getElementById('ruleOfLifeModal');
             const meditationModal = document.getElementById('meditationModal');
             const retreatModal = document.getElementById('retreatModal');
@@ -1094,6 +1150,8 @@
             const diaryModal = document.getElementById('diaryModal');
             const diaryDetailModal = document.getElementById('diaryDetailModal');
             const welcomeModal = document.getElementById('welcomeModal');
+            const commonPrayersModal = document.getElementById('commonPrayersModal');
+            const prayerDetailModal = document.getElementById('prayerDetailModal');
 
             // Nav Items
             const navHome = document.getElementById('navHome');
@@ -1105,6 +1163,7 @@
             const nudgeBtn = document.getElementById('nudgeBtn');
             const saveWord = document.getElementById('saveWord');
             const saveSitDown = document.getElementById('saveSitDown');
+            const sitDownGuideBtn = document.getElementById('sitDownGuideBtn');
             const saveRuleOfLife = document.getElementById('saveRuleOfLife');
             const saveMeditation = document.getElementById('saveMeditation');
             const saveRetreat = document.getElementById('saveRetreat');
@@ -1143,6 +1202,21 @@
             let timerInterval = null;
             let currentDiaryEntry = null;
             let allDiaryEntries = [];
+
+            const commonPrayers = [
+                {
+                    title: "Magnificat",
+                    text: "A minha alma engrandece o Senhor,\ne o meu espírito se alegra em Deus, meu Salvador.\nPorque pôs os olhos na humildade da sua serva:\nde hoje em diante me chamarão bem-aventurada todas as gerações.\nO Todo-Poderoso fez em mim maravilhas:\nSanto é o seu nome.\nA sua misericórdia se estende de geração em geração\nsobre aqueles que O temem.\nManifestou o poder do seu braço\ne dispersou os soberbos.\nDerrubou os poderosos de seus tronos\ne exaltou os humildes.\nAos famintos encheu de bens\ne aos ricos despediu de mãos vazias.\nAcolheu a Israel, seu servo,\nlembrado da sua misericórdia,\ncomo tinha prometido a nossos pais,\na Abraão e à sua descendência para sempre.\nGlória ao Pai e ao Filho e ao Espírito Santo,\ncomo era no princípio, agora e sempre. Amém."
+                },
+                {
+                    title: "Oração da Equipe",
+                    text: "Senhor, fazei que a nossa Equipe seja um lugar de acolhimento, de escuta e de partilha.\nQue saibamos nos amar como Vós nos amastes.\nQue a nossa união seja sinal da Vossa presença no meio de nós.\nDai-nos a graça de sermos fiéis aos nossos compromissos e de crescermos juntos na fé e no amor.\nMaria, Mãe das Equipes, rogai por nós."
+                },
+                {
+                    title: "Oração ao Espírito Santo",
+                    text: "Vinde, Espírito Santo, enchei os corações dos vossos fiéis e acendei neles o fogo do vosso amor.\nEnviai o vosso Espírito e tudo será criado, e renovareis a face da terra.\nOremos: Ó Deus, que instruístes os corações dos vossos fiéis com a luz do Espírito Santo, fazei que apreciemos retamente todas as coisas segundo o mesmo Espírito e gozemos sempre da sua consolação. Por Cristo, Senhor nosso. Amém."
+                }
+            ];
 
             // Theme Logic
             const savedTheme = localStorage.getItem(STORAGE_KEY_THEME) || 'light';
@@ -1184,6 +1258,30 @@
                     alert("Link do App: " + window.location.href);
                 }
             };
+
+            // Common Prayers Logic
+            commonPrayersBtn.onclick = () => {
+                const list = document.getElementById('prayerLibraryList');
+                list.innerHTML = '';
+                commonPrayers.forEach(prayer => {
+                    const item = document.createElement('div');
+                    item.className = 'prayer-library-item';
+                    item.innerHTML = `
+                        <div class="prayer-library-title">${prayer.title}</div>
+                        <div class="prayer-library-preview">${prayer.text.substring(0, 60)}...</div>
+                    `;
+                    item.onclick = () => {
+                        document.getElementById('prayerDetailTitle').textContent = prayer.title;
+                        document.getElementById('prayerDetailText').textContent = prayer.text;
+                        prayerDetailModal.classList.add('show');
+                    };
+                    list.appendChild(item);
+                });
+                commonPrayersModal.classList.add('show');
+            };
+
+            document.getElementById('closeCommonPrayersModal').onclick = () => commonPrayersModal.classList.remove('show');
+            document.getElementById('closePrayerDetailModal').onclick = () => prayerDetailModal.classList.remove('show');
 
             // Initialization
             async function init() {
@@ -1489,6 +1587,9 @@
                 }
             }
 
+            sitDownGuideBtn.onclick = () => sitDownGuideModal.classList.add('show');
+            document.getElementById('closeSitDownGuideModal').onclick = () => sitDownGuideModal.classList.remove('show');
+
             saveSitDown.onclick = async () => {
                 const date = document.getElementById('sitDownDate').value;
                 const notes = document.getElementById('sitDownNotes').value;
@@ -1555,7 +1656,7 @@
                 await db.collection('users').doc(userId).collection('pce_history').add({
                     type: 'Retiro Anual', date: date, content: notes, timestamp: Date.now()
                 });
-                alert("Retiro Anual salvo!");
+                alert("Retiro Anual salva!");
                 retreatModal.classList.remove('show');
             };
 
