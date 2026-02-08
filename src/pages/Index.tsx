@@ -8,26 +8,46 @@ import PceSummary from '@/components/home/PceSummary';
 import PceCard from '@/components/home/PceCard';
 import PrayerMethods from '@/components/home/PrayerMethods';
 import PrayerSession from '@/components/home/PrayerSession';
+import ConjugalPrayerModal from '@/components/home/ConjugalPrayerModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { db } from '@/lib/firebase';
+import { doc, onSnapshot, getDoc } from 'firebase/firestore';
 
 const Index = () => {
   const [liturgia, setLiturgia] = useState<any>(null);
   const [showMethods, setShowMethods] = useState(false);
+  const [showConjugalModal, setShowConjugalModal] = useState(false);
   const [activeMethod, setActiveMethod] = useState<'simples' | 'lectio' | 'rapido' | null>(null);
   const [completedDays, setCompletedDays] = useState<string[]>([]);
+  const [conjugalCompleted, setConjugalCompleted] = useState(false);
   
+  // Mock IDs for now - in a real app these would come from Auth
+  const coupleId = "couple_demo_123";
+  const today = format(new Date(), 'yyyy-MM-dd');
+
   useEffect(() => {
     fetch('https://liturgia.up.railway.app/')
       .then(res => res.json())
       .then(data => setLiturgia(data))
       .catch(err => console.error("Erro ao buscar liturgia:", err));
 
-    // Load completed days from local storage (simulating Firebase for now)
+    // Load personal prayer completed days
     const saved = localStorage.getItem('prayerCompletedDays');
     if (saved) setCompletedDays(JSON.parse(saved));
-  }, []);
+
+    // Sync Conjugal Prayer status from Firebase
+    const prayerRef = doc(db, 'couples', coupleId, 'conjugalPrayer', 'dates');
+    const unsubscribe = onSnapshot(prayerRef, (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setConjugalCompleted(!!data[today]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [coupleId, today]);
 
   const handleSelectMethod = (method: 'simples' | 'lectio' | 'rapido') => {
     setActiveMethod(method);
@@ -35,17 +55,14 @@ const Index = () => {
   };
 
   const handleCompletePrayer = (reflections: any) => {
-    const today = format(new Date(), 'yyyy-MM-dd');
     const newCompleted = [...new Set([...completedDays, today])];
-    
     setCompletedDays(newCompleted);
     localStorage.setItem('prayerCompletedDays', JSON.stringify(newCompleted));
-    
     setActiveMethod(null);
     toast.success("Oração concluída! Que Deus te abençoe!");
   };
 
-  const isTodayCompleted = completedDays.includes(format(new Date(), 'yyyy-MM-dd'));
+  const isTodayCompleted = completedDays.includes(today);
 
   return (
     <div className="min-h-screen bg-[#f5f5f5] pb-24">
@@ -79,8 +96,10 @@ const Index = () => {
               <PceCard 
                 icon="💑"
                 title="Oração Conjugal Diária"
-                status="Ainda não"
+                status={conjugalCompleted ? "Completo hoje" : "Pendente"}
+                isCompleted={conjugalCompleted}
                 info="📍 Horário: 21h15"
+                onClick={() => setShowConjugalModal(true)}
               />
               <PceCard 
                 icon="💬"
@@ -125,6 +144,16 @@ const Index = () => {
           <PrayerMethods 
             onClose={() => setShowMethods(false)} 
             onSelect={handleSelectMethod}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showConjugalModal && (
+          <ConjugalPrayerModal 
+            coupleId={coupleId}
+            onClose={() => setShowConjugalModal(false)}
+            onSuccess={() => setConjugalCompleted(true)}
           />
         )}
       </AnimatePresence>
