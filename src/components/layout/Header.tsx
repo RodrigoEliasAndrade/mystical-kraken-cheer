@@ -1,24 +1,23 @@
 "use client";
 
 import React from 'react';
-import { Moon, Sun, Bell, ScrollText } from 'lucide-react';
+import { Bell, ScrollText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface HeaderProps {
   userName: string;
   partnerName?: string;
-  liturgicalColor?: string;
   celebration?: string;
   saint?: string;
 }
 
-const Header = ({ userName, partnerName, liturgicalColor, celebration, saint }: HeaderProps) => {
-  // Default to our primary blue if no liturgical color is provided
-  const bgColor = liturgicalColor || "#2c3e6b";
+const Header = ({ userName, partnerName, celebration, saint }: HeaderProps) => {
+  // Fixed Blue Color: #2c3e6b
+  const bgColor = "#2c3e6b";
 
   return (
     <header 
-      className="relative pt-12 pb-10 px-6 text-center text-white transition-colors duration-700 ease-in-out rounded-b-[2.5rem] shadow-xl"
+      className="relative pt-12 pb-10 px-6 text-center text-white rounded-b-[2.5rem] shadow-xl"
       style={{ backgroundColor: bgColor }}
     >
       <div className="absolute top-4 right-4 flex gap-2">
@@ -31,7 +30,7 @@ const Header = ({ userName, partnerName, liturgicalColor, celebration, saint }: 
       </div>
 
       <div className="flex flex-col items-center gap-2">
-        <span className="text-3xl animate-pulse text-[#c9a84c]">✝</span>
+        <span className="text-3xl text-[#c9a84c]">✝</span>
         <h1 className="text-lg font-bold tracking-widest uppercase">Equipes de Nossa Senhora</h1>
         
         <div className="mt-2">

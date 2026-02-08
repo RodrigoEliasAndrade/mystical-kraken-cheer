@@ -20,19 +20,10 @@ const Index = () => {
       .catch(err => console.error("Erro ao buscar liturgia:", err));
   }, []);
 
-  const liturgicalColors: Record<string, string> = {
-    'Verde': '#2d5a27',
-    'Roxo': '#4a148c',
-    'Branco': '#2c3e6b',
-    'Vermelho': '#b71c1c',
-    'Rosa': '#d81b60'
-  };
-
   return (
     <div className="min-h-screen bg-background pb-24">
       <Header 
         userName={userName}
-        liturgicalColor={liturgia ? liturgicalColors[liturgia.cor] : undefined}
         celebration={liturgia?.celebracao}
         saint={liturgia?.santo_do_dia}
       />
