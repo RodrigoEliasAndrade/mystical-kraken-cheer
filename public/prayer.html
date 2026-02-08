@@ -647,6 +647,7 @@
         <span class="cross">✝</span>
         <h1>Equipes de Nossa Senhora</h1>
         <p id="headerNames" style="font-size: 0.9em; opacity: 0.8; margin-top: 2px; text-transform: none;"></p>
+        <p id="liturgicalCelebration" style="font-size: 0.75em; font-style: italic; margin-top: 5px; opacity: 0.9;"></p>
         <p>Oração Diária</p>
     </header>
 
@@ -855,7 +856,10 @@
         <div class="modal-content" style="max-width: 450px; text-align: left;">
             <h2 id="detailDate" style="text-align: center;">Data</h2>
             <div id="detailContent"></div>
-            <button id="closeDiaryDetailModal" class="btn btn-secondary" style="margin-top: 20px; width: 100%;">Voltar</button>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button id="shareReflectionBtn" class="btn btn-primary" style="flex: 1; font-size: 0.8em;">Compartilhar</button>
+                <button id="closeDiaryDetailModal" class="btn btn-secondary" style="flex: 1; font-size: 0.8em;">Voltar</button>
+            </div>
         </div>
     </div>
 
@@ -934,6 +938,8 @@
             const prayerActions = document.getElementById('prayerActions');
             const successOverlay = document.getElementById('successOverlay');
             const themeToggle = document.getElementById('themeToggle');
+            const notificationBtn = document.getElementById('notificationBtn');
+            const notificationMenu = document.getElementById('notificationMenu');
 
             // Modals
             const pceModal = document.getElementById('pceModal');
@@ -961,12 +967,15 @@
             const generateInviteBtn = document.getElementById('generateInviteBtn');
             const joinCoupleBtn = document.getElementById('joinCoupleBtn');
             const saveConjugalTime = document.getElementById('saveConjugalTime');
+            const saveNotif = document.getElementById('saveNotif');
+            const shareReflectionBtn = document.getElementById('shareReflectionBtn');
 
             // State
             const STORAGE_KEY_COMPLETED = 'prayerCompletedDaysList';
             const STORAGE_KEY_USER_ID = 'prayerUserId';
             const STORAGE_KEY_USER_NAME = 'prayerUserName';
             const STORAGE_KEY_THEME = 'prayerTheme';
+            const STORAGE_KEY_NOTIF = 'prayerNotifSettings';
             
             let completedDays = JSON.parse(localStorage.getItem(STORAGE_KEY_COMPLETED) || '[]');
             let today = new Date();
@@ -983,6 +992,7 @@
             let nudgeUnsubscribe = null;
             let intentionsUnsubscribe = null;
             let timerInterval = null;
+            let currentDiaryEntry = null;
 
             // Theme Logic
             const savedTheme = localStorage.getItem(STORAGE_KEY_THEME) || 'light';
@@ -993,6 +1003,24 @@
                 const next = current === 'light' ? 'dark' : 'light';
                 document.documentElement.setAttribute('data-theme', next);
                 localStorage.setItem(STORAGE_KEY_THEME, next);
+            };
+
+            // Notification Logic
+            notificationBtn.onclick = () => notificationMenu.classList.toggle('show');
+            
+            const savedNotif = JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIF) || '{"enabled":false,"time":"08:00"}');
+            document.getElementById('notifToggle').checked = savedNotif.enabled;
+            document.getElementById('notifTime').value = savedNotif.time;
+            if (savedNotif.enabled) notificationBtn.classList.replace('inactive', 'active');
+
+            saveNotif.onclick = () => {
+                const enabled = document.getElementById('notifToggle').checked;
+                const time = document.getElementById('notifTime').value;
+                localStorage.setItem(STORAGE_KEY_NOTIF, JSON.stringify({ enabled, time }));
+                notificationBtn.classList.toggle('active', enabled);
+                notificationBtn.classList.toggle('inactive', !enabled);
+                notificationMenu.classList.remove('show');
+                alert("Configurações de lembrete salvas!");
             };
 
             // Initialization
@@ -1276,6 +1304,7 @@
             }
 
             function showDiaryDetail(data) {
+                currentDiaryEntry = data;
                 const content = document.getElementById('detailContent');
                 document.getElementById('detailDate').textContent = data.date;
                 let html = `<p><strong>Método:</strong> ${data.method || 'Simples'}</p>`;
@@ -1288,6 +1317,19 @@
                 content.innerHTML = html;
                 diaryDetailModal.classList.add('show');
             }
+
+            shareReflectionBtn.onclick = () => {
+                if (!currentDiaryEntry) return;
+                let text = `*Minha Oração - ${currentDiaryEntry.date}*\n\n`;
+                if (currentDiaryEntry.gospel) text += `Evangelho: ${currentDiaryEntry.gospel.referencia}\n\n`;
+                if (currentDiaryEntry.reflections) {
+                    Object.entries(currentDiaryEntry.reflections).forEach(([key, val]) => {
+                        if (val) text += `*${key.toUpperCase()}*:\n${val}\n\n`;
+                    });
+                }
+                const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                window.open(url, '_blank');
+            };
 
             document.getElementById('closeDiaryDetailModal').onclick = () => diaryDetailModal.classList.remove('show');
             document.getElementById('closeDiaryModal').onclick = () => { diaryModal.classList.remove('show'); setActiveNav('navHome'); };
@@ -1352,6 +1394,7 @@
                     const data = await response.json();
                     const colors = { 'Verde': '#48bb78', 'Roxo': '#805ad5', 'Branco': '#edf2f7', 'Vermelho': '#e53e3e' };
                     liturgicalBar.style.backgroundColor = colors[data.cor] || '#2c3e6b';
+                    if (data.celebracao) document.getElementById('liturgicalCelebration').textContent = data.celebracao;
                     if (data.evangelho) gospelData = data.evangelho;
                 } catch (e) { console.error(e); }
             }
