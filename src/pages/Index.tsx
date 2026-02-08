@@ -5,13 +5,13 @@ import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav';
 import PrayerCalendar from '@/components/home/PrayerCalendar';
 import PceSummary from '@/components/home/PceSummary';
-import { Button } from '@/components/ui/button';
-import { Play } from 'lucide-react';
-import { motion } from 'framer-motion';
+import PceCard from '@/components/home/PceCard';
+import PrayerMethods from '@/components/home/PrayerMethods';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Index = () => {
   const [liturgia, setLiturgia] = useState<any>(null);
-  const [userName] = useState("Usuário");
+  const [showMethods, setShowMethods] = useState(false);
   
   useEffect(() => {
     fetch('https://liturgia.up.railway.app/')
@@ -21,42 +21,82 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-[#f5f5f5] pb-24">
       <Header 
-        userName={userName}
         celebration={liturgia?.celebracao}
         saint={liturgia?.santo_do_dia}
       />
 
-      <main className="px-6 -mt-8 relative z-10">
+      <main className="px-6 -mt-8 relative z-10 space-y-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
+          className="space-y-8"
         >
           <PrayerCalendar completedDays={[]} />
           
-          <div className="mt-8 space-y-6">
-            <div className="flex flex-col gap-3">
-              <h2 className="text-xl font-bold tracking-tight text-[#2c3e6b]">Começar Oração</h2>
-              <p className="text-sm text-muted-foreground">Escolha um método para o seu momento com Deus hoje.</p>
-              
-              <div className="grid grid-cols-1 gap-3 mt-2">
-                <Button className="h-16 rounded-2xl justify-between px-6 text-lg font-bold bg-[#c9a84c] hover:bg-[#b8973d] text-white shadow-lg shadow-yellow-200/30 border-none">
-                  Liturgia Simples
-                  <Play size={20} fill="currentColor" />
-                </Button>
-                <div className="grid grid-cols-2 gap-3">
-                  <Button variant="outline" className="h-14 rounded-2xl font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5 bg-white">Lectio Divina</Button>
-                  <Button variant="outline" className="h-14 rounded-2xl font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5 bg-white">Método Rápido</Button>
-                </div>
-              </div>
+          <section>
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-[#2c3e6b] mb-4 px-1">
+              Meus PCEs
+            </h2>
+            <div className="grid grid-cols-1 gap-3">
+              <PceCard 
+                icon="🙏"
+                title="Oração Pessoal Diária"
+                status="Pendente"
+                info="🔥 5 dias seguidos"
+                onClick={() => setShowMethods(true)}
+              />
+              <PceCard 
+                icon="💑"
+                title="Oração Conjugal Diária"
+                status="Ainda não"
+                info="📍 Horário: 21h15"
+              />
+              <PceCard 
+                icon="💬"
+                title="Dever de Sentar-se Mensal"
+                status="Aguardando"
+                info="📅 Próximo: 15/02"
+              />
+              <PceCard 
+                icon="📝"
+                title="Regra de Vida Mensal"
+                status="Aguardando"
+                info="📅 Revisão: 28/02"
+              />
+              <PceCard 
+                icon="👥"
+                title="Reunião de Equipe Mensal"
+                status="Pendente"
+                info="📅 Data: 20/02"
+              />
+              <PceCard 
+                icon="⛪"
+                title="Retiro Anual"
+                status="Pendente"
+              />
             </div>
+          </section>
 
-            <PceSummary />
-          </div>
+          <section>
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-[#2c3e6b] mb-4 px-1">
+              Resumo do Mês
+            </h2>
+            <PceSummary 
+              ruleOfLife="Ser mais paciente com as crianças durante o jantar."
+              lastWord={liturgia?.evangelho?.referencia}
+            />
+          </section>
         </motion.div>
       </main>
+
+      <AnimatePresence>
+        {showMethods && (
+          <PrayerMethods onClose={() => setShowMethods(false)} />
+        )}
+      </AnimatePresence>
 
       <BottomNav />
     </div>

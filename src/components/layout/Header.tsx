@@ -5,14 +5,18 @@ import { Bell, ScrollText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface HeaderProps {
-  userName: string;
+  userName?: string;
   partnerName?: string;
   celebration?: string;
   saint?: string;
 }
 
-const Header = ({ userName, partnerName, celebration, saint }: HeaderProps) => {
-  // Permanent Blue Color: #2c3e6b
+const Header = ({ 
+  userName = "Rodrigo", 
+  partnerName = "Vivian", 
+  celebration, 
+  saint 
+}: HeaderProps) => {
   const bgColor = "#2c3e6b";
 
   return (
@@ -31,11 +35,11 @@ const Header = ({ userName, partnerName, celebration, saint }: HeaderProps) => {
 
       <div className="flex flex-col items-center gap-2">
         <span className="text-3xl text-[#c9a84c]">✝</span>
-        <h1 className="text-lg font-bold tracking-widest uppercase">Equipes de Nossa Senhora</h1>
+        <h1 className="text-lg font-bold tracking-widest uppercase">ENS DIA A DIA</h1>
         
         <div className="mt-2">
           <p className="text-sm font-bold opacity-90">
-            {userName} {partnerName ? `& ${partnerName}` : ''}
+            {userName} & {partnerName}
           </p>
           {celebration && (
             <p className="text-xs italic opacity-80 mt-1 max-w-[280px] mx-auto leading-tight">
