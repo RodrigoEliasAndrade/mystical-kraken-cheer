@@ -23,7 +23,7 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
   const gospel = liturgia?.evangelho;
   const gospelText = gospel?.texto || "";
   
-  // Split gospel into 4 parts
+  // Split gospel into 4 parts for better readability
   const sentences = gospelText.split(/[.!?]/).filter(s => s.trim().length > 0);
   const chunkSize = Math.ceil(sentences.length / 4);
   const gospelChunks = [];
@@ -34,14 +34,14 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
 
   const steps = {
     simples: [
-      { type: 'gospel', title: 'Evangelho do Dia' },
-      { type: 'text', content: 'Reflita sobre o que mais tocou você' },
-      { type: 'text', content: 'O que Deus está dizendo hoje?' },
-      { type: 'input', label: 'reflexao', placeholder: 'Escreva aqui sua reflexão...' },
+      { type: 'text', title: 'ORIENTAÇÃO', content: 'Leia com atenção o Evangelho de hoje' },
+      ...gospelChunks.map((chunk, i) => ({ type: 'gospel_chunk', content: chunk, part: i + 1 })),
+      { type: 'input', title: 'REFLITA', content: 'O que mais tocou você nesta Palavra?', label: 'reflexao', placeholder: 'Sua reflexão...' },
+      { type: 'input', title: 'O QUE DEUS ESTÁ DIZENDO?', content: 'Como vou viver isso hoje?', label: 'aplicacao', placeholder: 'Sua aplicação...' },
       { type: 'finish' }
     ],
     lectio: [
-      { type: 'text', title: 'LECTIO', content: 'Leia com atenção saboreando cada palavra' },
+      { type: 'text', title: 'ORIENTAÇÃO', content: 'LECTIO - Leia com atenção saboreando cada palavra' },
       ...gospelChunks.map((chunk, i) => ({ type: 'gospel_chunk', content: chunk, part: i + 1 })),
       { type: 'input', title: 'MEDITATIO', content: 'O que esta palavra diz para você hoje?', label: 'meditacao', placeholder: 'Sua meditação...' },
       { type: 'input', title: 'ORATIO', content: 'Fale com Deus sobre o que você sentiu', label: 'oracao', placeholder: 'Sua oração...' },
@@ -49,11 +49,10 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
       { type: 'finish' }
     ],
     rapido: [
-      { type: 'gospel', title: 'Evangelho do Dia' },
-      { type: 'text', content: 'O que Deus está dizendo?' },
-      { type: 'input', label: 'deus_diz', placeholder: 'O que você ouviu...' },
-      { type: 'text', content: 'O que vou fazer hoje?' },
-      { type: 'input', label: 'acao', placeholder: 'Seu propósito para hoje...' },
+      { type: 'text', title: 'ORIENTAÇÃO', content: 'Leia o Evangelho e responda rapidamente' },
+      ...gospelChunks.map((chunk, i) => ({ type: 'gospel_chunk', content: chunk, part: i + 1 })),
+      { type: 'input', title: 'O QUE DEUS ESTÁ DIZENDO?', content: '', label: 'deus_diz', placeholder: 'Escreva aqui...' },
+      { type: 'input', title: 'O QUE VOU FAZER HOJE?', content: '', label: 'acao', placeholder: 'Minha ação concreta...' },
       { type: 'finish' }
     ]
   }[method];
@@ -110,16 +109,6 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
 
   const renderStep = (step: any) => {
     switch (step.type) {
-      case 'gospel':
-        return (
-          <div className="space-y-4 overflow-y-auto max-h-[60vh] pr-2">
-            <h3 className="text-xl font-bold text-[#2c3e6b]">{gospel?.titulo}</h3>
-            <p className="text-xs font-bold text-[#c9a84c] uppercase tracking-wider">{gospel?.referencia}</p>
-            <div className="text-base leading-relaxed text-foreground/90 whitespace-pre-wrap">
-              {gospel?.texto}
-            </div>
-          </div>
-        );
       case 'gospel_chunk':
         return (
           <div className="space-y-6 py-4">
@@ -144,7 +133,7 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
           <div className="space-y-6">
             <div className="text-center space-y-2">
               {step.title && <h3 className="text-2xl font-black text-[#c9a84c] tracking-widest">{step.title}</h3>}
-              <p className="text-lg font-medium text-[#2c3e6b]">{step.content}</p>
+              {step.content && <p className="text-lg font-medium text-[#2c3e6b]">{step.content}</p>}
             </div>
             <Textarea 
               value={reflections[step.label] || ''}
