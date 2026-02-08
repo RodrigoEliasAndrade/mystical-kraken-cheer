@@ -12,7 +12,7 @@ interface HeaderProps {
 }
 
 const Header = ({ userName, partnerName, celebration, saint }: HeaderProps) => {
-  // Fixed Blue Color: #2c3e6b
+  // Permanent Blue Color: #2c3e6b
   const bgColor = "#2c3e6b";
 
   return (
@@ -21,10 +21,10 @@ const Header = ({ userName, partnerName, celebration, saint }: HeaderProps) => {
       style={{ backgroundColor: bgColor }}
     >
       <div className="absolute top-4 right-4 flex gap-2">
-        <Button variant="ghost" size="icon" className="rounded-full bg-white/10 hover:bg-white/20 text-white">
+        <Button variant="ghost" size="icon" className="rounded-full bg-white/10 hover:bg-white/20 text-white border-none">
           <ScrollText size={20} />
         </Button>
-        <Button variant="ghost" size="icon" className="rounded-full bg-white/10 hover:bg-white/20 text-white">
+        <Button variant="ghost" size="icon" className="rounded-full bg-white/10 hover:bg-white/20 text-white border-none">
           <Bell size={20} />
         </Button>
       </div>

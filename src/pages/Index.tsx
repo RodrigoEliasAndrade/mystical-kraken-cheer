@@ -32,7 +32,7 @@ const Index = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4 }}
         >
           <PrayerCalendar completedDays={[]} />
           
@@ -42,13 +42,13 @@ const Index = () => {
               <p className="text-sm text-muted-foreground">Escolha um método para o seu momento com Deus hoje.</p>
               
               <div className="grid grid-cols-1 gap-3 mt-2">
-                <Button className="h-16 rounded-2xl justify-between px-6 text-lg font-bold bg-[#c9a84c] hover:bg-[#b8973d] text-white shadow-lg shadow-yellow-200/50 border-none">
+                <Button className="h-16 rounded-2xl justify-between px-6 text-lg font-bold bg-[#c9a84c] hover:bg-[#b8973d] text-white shadow-lg shadow-yellow-200/30 border-none">
                   Liturgia Simples
                   <Play size={20} fill="currentColor" />
                 </Button>
                 <div className="grid grid-cols-2 gap-3">
-                  <Button variant="outline" className="h-14 rounded-2xl font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5">Lectio Divina</Button>
-                  <Button variant="outline" className="h-14 rounded-2xl font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5">Método Rápido</Button>
+                  <Button variant="outline" className="h-14 rounded-2xl font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5 bg-white">Lectio Divina</Button>
+                  <Button variant="outline" className="h-14 rounded-2xl font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5 bg-white">Método Rápido</Button>
                 </div>
               </div>
             </div>
