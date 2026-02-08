@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, ArrowLeft, Volume2, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
 
 interface PrayerSessionProps {
   method: 'simples' | 'lectio' | 'rapido';
@@ -22,6 +21,16 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const gospel = liturgia?.evangelho;
+  const gospelText = gospel?.texto || "";
+  
+  // Split gospel into 4 parts
+  const sentences = gospelText.split(/[.!?]/).filter(s => s.trim().length > 0);
+  const chunkSize = Math.ceil(sentences.length / 4);
+  const gospelChunks = [];
+  for (let i = 0; i < 4; i++) {
+    const chunk = sentences.slice(i * chunkSize, (i + 1) * chunkSize).join(". ") + ".";
+    if (chunk.length > 1) gospelChunks.push(chunk);
+  }
 
   const steps = {
     simples: [
@@ -32,14 +41,11 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
       { type: 'finish' }
     ],
     lectio: [
-      { type: 'gospel', title: 'Evangelho do Dia' },
-      { type: 'text', title: 'LECTIO', content: 'Leia com atenção saboreando cada palavra.' },
-      { type: 'text', title: 'MEDITATIO', content: 'O que esta palavra diz para você hoje?' },
-      { type: 'input', label: 'meditacao', placeholder: 'Sua meditação...' },
-      { type: 'text', title: 'ORATIO', content: 'Fale com Deus sobre o que você sentiu.' },
-      { type: 'input', label: 'oracao', placeholder: 'Sua oração...' },
-      { type: 'text', title: 'CONTEMPLATIO', content: 'Fique em silêncio por 2 minutos sob o olhar de Deus.' },
-      { type: 'timer' },
+      { type: 'text', title: 'LECTIO', content: 'Leia com atenção saboreando cada palavra' },
+      ...gospelChunks.map((chunk, i) => ({ type: 'gospel_chunk', content: chunk, part: i + 1 })),
+      { type: 'input', title: 'MEDITATIO', content: 'O que esta palavra diz para você hoje?', label: 'meditacao', placeholder: 'Sua meditação...' },
+      { type: 'input', title: 'ORATIO', content: 'Fale com Deus sobre o que você sentiu', label: 'oracao', placeholder: 'Sua oração...' },
+      { type: 'timer', title: 'CONTEMPLATIO', content: 'Fique em silêncio por 2 minutos sob o olhar de Deus' },
       { type: 'finish' }
     ],
     rapido: [
@@ -89,6 +95,18 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
             </div>
           </div>
         );
+      case 'gospel_chunk':
+        return (
+          <div className="space-y-6 py-4">
+            <div className="flex justify-between items-center">
+              <p className="text-xs font-bold text-[#c9a84c] uppercase tracking-widest">Evangelho - Parte {step.part}</p>
+              <p className="text-[10px] font-bold text-muted-foreground">{gospel?.referencia}</p>
+            </div>
+            <div className="text-2xl font-medium leading-relaxed text-[#2c3e6b]">
+              {step.content}
+            </div>
+          </div>
+        );
       case 'text':
         return (
           <div className="text-center space-y-6 py-10">
@@ -98,13 +116,16 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
         );
       case 'input':
         return (
-          <div className="space-y-4">
-            <p className="text-sm font-bold text-[#2c3e6b] uppercase tracking-wider">Sua Reflexão</p>
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              {step.title && <h3 className="text-2xl font-black text-[#c9a84c] tracking-widest">{step.title}</h3>}
+              <p className="text-lg font-medium text-[#2c3e6b]">{step.content}</p>
+            </div>
             <Textarea 
               value={reflections[step.label] || ''}
               onChange={(e) => setReflections({ ...reflections, [step.label]: e.target.value })}
               placeholder={step.placeholder}
-              className="min-h-[200px] rounded-2xl border-2 border-[#e8f0f7] focus:border-[#c9a84c] text-lg"
+              className="min-h-[180px] rounded-2xl border-2 border-[#e8f0f7] focus:border-[#c9a84c] text-lg"
             />
           </div>
         );
@@ -112,7 +133,11 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
         const mins = Math.floor(timeLeft / 60);
         const secs = timeLeft % 60;
         return (
-          <div className="text-center space-y-8 py-10">
+          <div className="text-center space-y-8 py-6">
+            <div className="space-y-2">
+              {step.title && <h3 className="text-2xl font-black text-[#c9a84c] tracking-widest">{step.title}</h3>}
+              <p className="text-lg font-medium text-[#2c3e6b]">{step.content}</p>
+            </div>
             <div className="text-6xl font-black text-[#2c3e6b] tabular-nums">
               {mins.toString().padStart(2, '0')}:{secs.toString().padStart(2, '0')}
             </div>
@@ -128,7 +153,7 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
                 onClick={playSound}
                 className="text-[#c9a84c] font-bold flex gap-2"
               >
-                <Volume2 size={20} /> Testar Som
+                <Volume2 size={20} /> 🔔 Testar Som
               </Button>
             </div>
           </div>
@@ -147,7 +172,7 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
               onClick={() => onComplete(reflections)}
               className="w-full h-16 rounded-2xl bg-[#c9a84c] text-white text-lg font-bold shadow-lg shadow-yellow-200/30"
             >
-              Concluir e Salvar
+              Concluir Oração
             </Button>
           </div>
         );
@@ -180,7 +205,7 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-[#e8f0f7] min-h-[400px] flex flex-col justify-center"
+            className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-[#e8f0f7] min-h-[420px] flex flex-col justify-center"
           >
             {renderStep(steps[currentStep])}
           </motion.div>
