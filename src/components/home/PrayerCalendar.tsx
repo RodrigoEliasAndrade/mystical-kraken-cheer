@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isToday } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
@@ -24,14 +24,14 @@ const PrayerCalendar = ({ completedDays }: PrayerCalendarProps) => {
   const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
   return (
-    <div className="bg-card rounded-3xl p-6 border shadow-sm">
+    <div className="bg-card rounded-[2rem] p-6 border shadow-sm">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-sm font-bold uppercase tracking-widest text-primary/60">
+        <h3 className="text-sm font-bold uppercase tracking-widest text-primary">
           {format(today, 'MMMM yyyy', { locale: ptBR })}
         </h3>
         <div className="flex gap-4 text-[10px] font-bold uppercase tracking-tighter">
-          <span className="text-orange-500">🔥 {completedDays.length} dias</span>
-          <span className="text-blue-500">⚡ Streak: 0</span>
+          <span className="text-[#c9a84c]">✨ {completedDays.length} dias</span>
+          <span className="text-primary">⚡ Streak: 0</span>
         </div>
       </div>
 
@@ -52,8 +52,8 @@ const PrayerCalendar = ({ completedDays }: PrayerCalendarProps) => {
               className={cn(
                 "aspect-square flex items-center justify-center text-xs rounded-xl transition-all duration-300",
                 !isCurrentMonth && "opacity-20",
-                isCompleted ? "bg-green-500 text-white shadow-md shadow-green-200" : "bg-muted/50 text-muted-foreground",
-                isToday(day) && !isCompleted && "border-2 border-primary text-primary font-bold"
+                isCompleted ? "bg-[#c9a84c] text-white shadow-md shadow-yellow-200" : "bg-muted/50 text-muted-foreground",
+                isToday(day) && !isCompleted && "border-2 border-[#c9a84c] text-[#c9a84c] font-bold"
               )}
             >
               {format(day, 'd')}

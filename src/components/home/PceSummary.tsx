@@ -11,8 +11,8 @@ interface PceSummaryProps {
 const PceSummary = ({ ruleOfLife, lastWord }: PceSummaryProps) => {
   return (
     <div className="space-y-4 mt-6">
-      <Card className="p-5 rounded-3xl border-none bg-primary/5">
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/60 block mb-2">
+      <Card className="p-5 rounded-[2rem] border-none bg-[#2c3e6b]/5">
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#2c3e6b] block mb-2">
           Minha Regra de Vida
         </span>
         <p className="text-sm leading-relaxed text-foreground/80 italic">
@@ -20,8 +20,8 @@ const PceSummary = ({ ruleOfLife, lastWord }: PceSummaryProps) => {
         </p>
       </Card>
 
-      <Card className="p-5 rounded-3xl border-none bg-secondary/50">
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary-foreground/60 block mb-2">
+      <Card className="p-5 rounded-[2rem] border-none bg-[#c9a84c]/10">
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#c9a84c] block mb-2">
           Última Escuta da Palavra
         </span>
         <p className="text-sm leading-relaxed text-foreground/80">

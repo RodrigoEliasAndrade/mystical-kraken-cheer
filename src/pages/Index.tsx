@@ -11,7 +11,7 @@ import { motion } from 'framer-motion';
 
 const Index = () => {
   const [liturgia, setLiturgia] = useState<any>(null);
-  const [userName] = useState("Usuário"); // This will come from local storage/auth later
+  const [userName] = useState("Usuário");
   
   useEffect(() => {
     fetch('https://liturgia.up.railway.app/')
@@ -37,7 +37,7 @@ const Index = () => {
         saint={liturgia?.santo_do_dia}
       />
 
-      <main className="px-6 -mt-6 relative z-10">
+      <main className="px-6 -mt-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -47,17 +47,17 @@ const Index = () => {
           
           <div className="mt-8 space-y-6">
             <div className="flex flex-col gap-3">
-              <h2 className="text-xl font-bold tracking-tight">Começar Oração</h2>
+              <h2 className="text-xl font-bold tracking-tight text-[#2c3e6b]">Começar Oração</h2>
               <p className="text-sm text-muted-foreground">Escolha um método para o seu momento com Deus hoje.</p>
               
               <div className="grid grid-cols-1 gap-3 mt-2">
-                <Button className="h-16 rounded-2xl justify-between px-6 text-lg font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
+                <Button className="h-16 rounded-2xl justify-between px-6 text-lg font-bold bg-[#c9a84c] hover:bg-[#b8973d] text-white shadow-lg shadow-yellow-200/50 border-none">
                   Liturgia Simples
                   <Play size={20} fill="currentColor" />
                 </Button>
                 <div className="grid grid-cols-2 gap-3">
-                  <Button variant="outline" className="h-14 rounded-2xl font-bold border-2">Lectio Divina</Button>
-                  <Button variant="outline" className="h-14 rounded-2xl font-bold border-2">Método Rápido</Button>
+                  <Button variant="outline" className="h-14 rounded-2xl font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5">Lectio Divina</Button>
+                  <Button variant="outline" className="h-14 rounded-2xl font-bold border-2 border-[#2c3e6b] text-[#2c3e6b] hover:bg-[#2c3e6b]/5">Método Rápido</Button>
                 </div>
               </div>
             </div>
