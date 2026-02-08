@@ -21,6 +21,7 @@
             --today-border: #c9a84c;
             --liturgical-color: #2c3e6b;
             --ai-bg: #f0f4ff;
+            --nav-height: 70px;
         }
 
         * {
@@ -39,6 +40,7 @@
             align-items: center;
             min-height: 100vh;
             overflow-x: hidden;
+            padding-bottom: var(--nav-height);
         }
 
         .liturgical-bar {
@@ -76,10 +78,40 @@
             font-size: 22px;
             cursor: pointer;
             padding: 5px;
+            color: white;
         }
         .notification-btn.active { color: var(--accent); }
         .notification-btn.inactive { color: #888; opacity: 0.6; }
-        .history-btn, .couple-btn, .diary-btn, .pce-btn { color: white; }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            z-index: 1000;
+            border-top: 1px solid var(--border);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.7em;
+            font-weight: 700;
+            cursor: pointer;
+            flex: 1;
+        }
+        .nav-item.active { color: var(--primary); }
+        .nav-icon { font-size: 20px; }
 
         .notification-menu {
             position: absolute;
@@ -522,6 +554,24 @@
         .pce-card-icon { font-size: 24px; margin-bottom: 8px; }
         .pce-card-title { font-size: 0.75em; font-weight: 700; color: var(--primary); text-transform: uppercase; }
 
+        /* Intentions Wall */
+        .intentions-list {
+            text-align: left;
+            margin-top: 20px;
+        }
+        .intention-item {
+            background: #f0f4ff;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .intention-text { flex: 1; }
+        .intention-author { font-size: 0.7em; color: var(--primary); font-weight: 700; margin-left: 10px; }
+
         @media (max-width: 550px) {
             .slider-card { padding: 30px 20px; }
         }
@@ -532,10 +582,6 @@
 
     <header class="app-header">
         <div class="header-icons">
-            <button id="diaryBtn" class="icon-btn diary-btn" title="Diário">📖</button>
-            <button id="pceBtn" class="icon-btn pce-btn" title="PCEs">🎯</button>
-            <button id="coupleBtn" class="icon-btn couple-btn" title="Casal">💑</button>
-            <button id="historyBtn" class="icon-btn history-btn" title="Histórico">📅</button>
             <button id="notificationBtn" class="icon-btn notification-btn inactive" title="Notificações">🔕</button>
         </div>
         
@@ -560,6 +606,26 @@
         <p id="headerNames" style="font-size: 0.9em; opacity: 0.8; margin-top: 2px; text-transform: none;"></p>
         <p>Oração Diária</p>
     </header>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" id="navHome">
+            <span class="nav-icon">🏠</span>
+            <span>Início</span>
+        </div>
+        <div class="nav-item" id="navPce">
+            <span class="nav-icon">🎯</span>
+            <span>PCEs</span>
+        </div>
+        <div class="nav-item" id="navDiary">
+            <span class="nav-icon">📖</span>
+            <span>Diário</span>
+        </div>
+        <div class="nav-item" id="navCouple">
+            <span class="nav-icon">💑</span>
+            <span>Casal</span>
+        </div>
+    </nav>
 
     <!-- Success Overlay -->
     <div id="successOverlay" class="success-overlay">
@@ -600,6 +666,21 @@
                 </div>
             </div>
             <button id="closePceModal" class="btn btn-secondary" style="margin-top: 20px;">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Escuta da Palavra Modal -->
+    <div id="wordModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 450px;">
+            <h2>Escuta da Palavra</h2>
+            <p>Registre sua leitura bíblica de hoje.</p>
+            <div class="time-input-container" style="text-align: left;">
+                <label class="time-input-label">Passagem Lida</label>
+                <input type="text" id="wordPassage" placeholder="Ex: João 1, 1-14">
+            </div>
+            <textarea id="wordKeyWord" placeholder="Uma palavra ou frase que marcou sua leitura..."></textarea>
+            <button id="saveWord" class="btn btn-primary">Salvar Registro</button>
+            <button id="closeWordModal" class="btn btn-secondary" style="margin-top: 10px;">Voltar</button>
         </div>
     </div>
 
@@ -651,6 +732,15 @@
                 <div id="partnerStatusArea" style="margin: 20px 0; padding: 15px; border-radius: 12px; background: #f8f9fa;">
                     <p id="partnerStatusText">Carregando status...</p>
                     <button id="nudgeBtn" class="btn btn-secondary" style="margin-top: 10px; font-size: 0.8em; padding: 8px;">🔔 Enviar Toque de Oração</button>
+                </div>
+
+                <div class="card" style="padding: 15px; text-align: left;">
+                    <h3 style="font-size: 0.9em; color: var(--primary); margin-top: 0;">Mural de Intenções</h3>
+                    <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                        <input type="text" id="intentionInput" placeholder="Nova intenção..." style="flex: 1; padding: 8px; font-size: 0.9em;">
+                        <button id="addIntentionBtn" class="btn btn-primary" style="width: auto; padding: 0 15px; font-size: 0.8em;">+</button>
+                    </div>
+                    <div id="intentionsList" class="intentions-list"></div>
                 </div>
 
                 <div class="time-input-container" style="text-align: left;">
@@ -770,20 +860,26 @@
 
             // Modals
             const pceModal = document.getElementById('pceModal');
+            const wordModal = document.getElementById('wordModal');
             const sitDownModal = document.getElementById('sitDownModal');
             const ruleOfLifeModal = document.getElementById('ruleOfLifeModal');
             const coupleModal = document.getElementById('coupleModal');
             const diaryModal = document.getElementById('diaryModal');
             const welcomeModal = document.getElementById('welcomeModal');
 
+            // Nav Items
+            const navHome = document.getElementById('navHome');
+            const navPce = document.getElementById('navPce');
+            const navDiary = document.getElementById('navDiary');
+            const navCouple = document.getElementById('navCouple');
+
             // Buttons
             const pceBtn = document.getElementById('pceBtn');
-            const diaryBtn = document.getElementById('diaryBtn');
-            const coupleBtn = document.getElementById('coupleBtn');
-            const historyBtn = document.getElementById('historyBtn');
             const nudgeBtn = document.getElementById('nudgeBtn');
+            const saveWord = document.getElementById('saveWord');
             const saveSitDown = document.getElementById('saveSitDown');
             const saveRuleOfLife = document.getElementById('saveRuleOfLife');
+            const addIntentionBtn = document.getElementById('addIntentionBtn');
 
             // State
             const STORAGE_KEY_COMPLETED = 'prayerCompletedDaysList';
@@ -802,6 +898,7 @@
             let conjugalTime = null;
             let partnerUnsubscribe = null;
             let nudgeUnsubscribe = null;
+            let intentionsUnsubscribe = null;
 
             // Initialization
             async function init() {
@@ -847,6 +944,7 @@
                             document.getElementById('connectedView').style.display = 'block';
                             setupPartnerStatusListener();
                             setupNudgeListener();
+                            setupIntentionsListener();
                         }
                         if (data.conjugalTime) {
                             conjugalTime = data.conjugalTime;
@@ -887,20 +985,77 @@
                 });
             }
 
+            function setupIntentionsListener() {
+                if (!coupleId) return;
+                if (intentionsUnsubscribe) intentionsUnsubscribe();
+                intentionsUnsubscribe = db.collection('couples').doc(coupleId).collection('intentions').orderBy('createdAt', 'desc').limit(5).onSnapshot(snapshot => {
+                    const list = document.getElementById('intentionsList');
+                    list.innerHTML = '';
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const item = document.createElement('div');
+                        item.className = 'intention-item';
+                        item.innerHTML = `<span class="intention-text">${data.text}</span><span class="intention-author">${data.author}</span>`;
+                        list.appendChild(item);
+                    });
+                });
+            }
+
+            addIntentionBtn.onclick = async () => {
+                const input = document.getElementById('intentionInput');
+                const text = input.value.trim();
+                if (text && coupleId) {
+                    await db.collection('couples').doc(coupleId).collection('intentions').add({
+                        text,
+                        author: userName,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    input.value = '';
+                }
+            };
+
             nudgeBtn.onclick = async () => {
                 if (!partnerId) return;
                 await db.collection('users').doc(partnerId).update({ lastNudge: Date.now() });
                 alert("Toque de oração enviado!");
             };
 
+            // Navigation Logic
+            function setActiveNav(id) {
+                document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                document.getElementById(id).classList.add('active');
+            }
+
+            navHome.onclick = () => { setActiveNav('navHome'); mainView.style.display = 'flex'; historyView.style.display = 'none'; };
+            navPce.onclick = () => { setActiveNav('navPce'); pceModal.classList.add('show'); };
+            navDiary.onclick = () => { setActiveNav('navDiary'); diaryModal.classList.add('show'); };
+            navCouple.onclick = () => { setActiveNav('navCouple'); coupleModal.classList.add('show'); };
+
             // PCE Logic
             pceBtn.onclick = () => pceModal.classList.add('show');
             document.getElementById('closePceModal').onclick = () => pceModal.classList.remove('show');
             
-            document.getElementById('pce1Btn').onclick = () => { pceModal.classList.remove('show'); window.scrollTo(0, 0); };
-            document.getElementById('pce2Btn').onclick = () => { pceModal.classList.remove('show'); coupleBtn.click(); };
+            document.getElementById('pce1Btn').onclick = () => { pceModal.classList.remove('show'); wordModal.classList.add('show'); loadWord(); };
+            document.getElementById('pce2Btn').onclick = () => { pceModal.classList.remove('show'); navCouple.click(); };
             document.getElementById('pce3Btn').onclick = () => { pceModal.classList.remove('show'); sitDownModal.classList.add('show'); loadSitDown(); };
             document.getElementById('pce4Btn').onclick = () => { pceModal.classList.remove('show'); ruleOfLifeModal.classList.add('show'); loadRuleOfLife(); };
+
+            async function loadWord() {
+                const doc = await db.collection('users').doc(userId).collection('pces').doc('word').get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('wordPassage').value = data.passage || '';
+                    document.getElementById('wordKeyWord').value = data.keyWord || '';
+                }
+            }
+
+            saveWord.onclick = async () => {
+                const passage = document.getElementById('wordPassage').value;
+                const keyWord = document.getElementById('wordKeyWord').value;
+                await db.collection('users').doc(userId).collection('pces').doc('word').set({ passage, keyWord, updatedAt: Date.now() });
+                alert("Escuta da Palavra salva!");
+                wordModal.classList.remove('show');
+            };
 
             async function loadSitDown() {
                 const doc = await db.collection('users').doc(userId).collection('pces').doc('sitdown').get();
@@ -933,6 +1088,7 @@
                 ruleOfLifeModal.classList.remove('show');
             };
 
+            document.getElementById('closeWordModal').onclick = () => wordModal.classList.remove('show');
             document.getElementById('closeSitDownModal').onclick = () => sitDownModal.classList.remove('show');
             document.getElementById('closeRuleOfLifeModal').onclick = () => ruleOfLifeModal.classList.remove('show');
 
@@ -1104,8 +1260,8 @@
                 }
             };
 
-            coupleBtn.onclick = () => coupleModal.classList.add('show');
-            document.getElementById('closeCoupleModal').onclick = () => coupleModal.classList.remove('show');
+            closeCoupleModal.onclick = () => { coupleModal.classList.remove('show'); setActiveNav('navHome'); };
+            closeDiaryModal.onclick = () => { diaryModal.classList.remove('show'); setActiveNav('navHome'); };
             
             init();
         });
