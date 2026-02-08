@@ -646,7 +646,8 @@
                 <label class="time-input-label">Horário do lembrete</label>
                 <input type="time" id="notifTime">
             </div>
-            <button id="saveNotif" class="btn btn-primary" style="padding: 10px; font-size: 0.8em;">Salvar</button>
+            <button id="saveNotif" class="btn btn-primary" style="padding: 10px; font-size: 0.8em; margin-bottom: 10px;">Salvar</button>
+            <button id="shareAppBtn" class="btn btn-secondary" style="padding: 10px; font-size: 0.8em;">Compartilhar App</button>
         </div>
 
         <span class="cross">✝</span>
@@ -718,6 +719,16 @@
                     <div class="stat-bar-bg"><div id="statBar4" class="stat-bar-fill" style="width: 0%"></div></div>
                     <span id="statVal4" class="stat-value">0%</span>
                 </div>
+                <div class="stat-row">
+                    <span class="stat-label">Oração Pessoal</span>
+                    <div class="stat-bar-bg"><div id="statBar5" class="stat-bar-fill" style="width: 0%"></div></div>
+                    <span id="statVal5" class="stat-value">0%</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Retiro Anual</span>
+                    <div class="stat-bar-bg"><div id="statBar6" class="stat-bar-fill" style="width: 0%"></div></div>
+                    <span id="statVal6" class="stat-value">0%</span>
+                </div>
             </div>
 
             <div class="pce-grid">
@@ -736,6 +747,14 @@
                 <div class="pce-card" id="pce4Btn">
                     <div class="pce-card-icon">📜</div>
                     <div class="pce-card-title">Regra de Vida</div>
+                </div>
+                <div class="pce-card" id="pce5Btn">
+                    <div class="pce-card-icon">🧘</div>
+                    <div class="pce-card-title">Oração Pessoal</div>
+                </div>
+                <div class="pce-card" id="pce6Btn">
+                    <div class="pce-card-icon">⛪</div>
+                    <div class="pce-card-title">Retiro Anual</div>
                 </div>
             </div>
             <button id="pceHistoryBtn" class="btn btn-secondary" style="margin-top: 20px;">Ver Histórico de PCEs</button>
@@ -790,6 +809,36 @@
             <textarea id="ruleOfLifeText" placeholder="Qual é o seu esforço concreto para este mês?"></textarea>
             <button id="saveRuleOfLife" class="btn btn-primary">Salvar Regra</button>
             <button id="closeRuleOfLifeModal" class="btn btn-secondary" style="margin-top: 10px;">Voltar</button>
+        </div>
+    </div>
+
+    <!-- Oração Pessoal Modal -->
+    <div id="meditationModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 450px;">
+            <h2>Oração Pessoal</h2>
+            <p>Um tempo de silêncio e meditação diária.</p>
+            <div class="time-input-container" style="text-align: left;">
+                <label class="time-input-label">Duração (minutos)</label>
+                <input type="text" id="meditationDuration" placeholder="Ex: 15">
+            </div>
+            <textarea id="meditationNotes" placeholder="O que Deus falou ao seu coração hoje?"></textarea>
+            <button id="saveMeditation" class="btn btn-primary">Salvar Registro</button>
+            <button id="closeMeditationModal" class="btn btn-secondary" style="margin-top: 10px;">Voltar</button>
+        </div>
+    </div>
+
+    <!-- Retiro Anual Modal -->
+    <div id="retreatModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 450px;">
+            <h2>Retiro Anual</h2>
+            <p>Um tempo forte de renovação espiritual.</p>
+            <div class="time-input-container" style="text-align: left;">
+                <label class="time-input-label">Data do Retiro</label>
+                <input type="date" id="retreatDate">
+            </div>
+            <textarea id="retreatNotes" placeholder="Principais frutos do retiro..."></textarea>
+            <button id="saveRetreat" class="btn btn-primary">Salvar Registro</button>
+            <button id="closeRetreatModal" class="btn btn-secondary" style="margin-top: 10px;">Voltar</button>
         </div>
     </div>
 
@@ -962,6 +1011,8 @@
             const wordModal = document.getElementById('wordModal');
             const sitDownModal = document.getElementById('sitDownModal');
             const ruleOfLifeModal = document.getElementById('ruleOfLifeModal');
+            const meditationModal = document.getElementById('meditationModal');
+            const retreatModal = document.getElementById('retreatModal');
             const coupleModal = document.getElementById('coupleModal');
             const diaryModal = document.getElementById('diaryModal');
             const diaryDetailModal = document.getElementById('diaryDetailModal');
@@ -978,6 +1029,8 @@
             const saveWord = document.getElementById('saveWord');
             const saveSitDown = document.getElementById('saveSitDown');
             const saveRuleOfLife = document.getElementById('saveRuleOfLife');
+            const saveMeditation = document.getElementById('saveMeditation');
+            const saveRetreat = document.getElementById('saveRetreat');
             const addIntentionBtn = document.getElementById('addIntentionBtn');
             const shareBtn = document.getElementById('shareBtn');
             const generateInviteBtn = document.getElementById('generateInviteBtn');
@@ -987,6 +1040,7 @@
             const shareReflectionBtn = document.getElementById('shareReflectionBtn');
             const disconnectBtn = document.getElementById('disconnectBtn');
             const pceHistoryBtn = document.getElementById('pceHistoryBtn');
+            const shareAppBtn = document.getElementById('shareAppBtn');
 
             // State
             const STORAGE_KEY_COMPLETED = 'prayerCompletedDaysList';
@@ -1011,6 +1065,7 @@
             let intentionsUnsubscribe = null;
             let timerInterval = null;
             let currentDiaryEntry = null;
+            let allDiaryEntries = [];
 
             // Theme Logic
             const savedTheme = localStorage.getItem(STORAGE_KEY_THEME) || 'light';
@@ -1039,6 +1094,18 @@
                 notificationBtn.classList.toggle('inactive', !enabled);
                 notificationMenu.classList.remove('show');
                 alert("Configurações de lembrete salvas!");
+            };
+
+            shareAppBtn.onclick = () => {
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Equipes de Nossa Senhora - Oração Diária',
+                        text: 'Venha rezar e acompanhar seus PCEs conosco! 🙏',
+                        url: window.location.href
+                    });
+                } else {
+                    alert("Link do App: " + window.location.href);
+                }
             };
 
             // Initialization
@@ -1253,6 +1320,12 @@
                 const ruleSnapshot = await db.collection('users').doc(userId).collection('pces').doc('ruleoflife').get();
                 const rulePerc = ruleSnapshot.exists ? 100 : 0;
 
+                const medSnapshot = await db.collection('users').doc(userId).collection('pces').doc('meditation').get();
+                const medPerc = medSnapshot.exists ? 100 : 0;
+
+                const retSnapshot = await db.collection('users').doc(userId).collection('pces').doc('retreat').get();
+                const retPerc = retSnapshot.exists ? 100 : 0;
+
                 document.getElementById('statBar1').style.width = `${wordCompleted}%`;
                 document.getElementById('statVal1').textContent = `${wordCompleted}%`;
                 document.getElementById('statBar2').style.width = `${conjugalPerc}%`;
@@ -1261,6 +1334,10 @@
                 document.getElementById('statVal3').textContent = `${sitPerc}%`;
                 document.getElementById('statBar4').style.width = `${rulePerc}%`;
                 document.getElementById('statVal4').textContent = `${rulePerc}%`;
+                document.getElementById('statBar5').style.width = `${medPerc}%`;
+                document.getElementById('statVal5').textContent = `${medPerc}%`;
+                document.getElementById('statBar6').style.width = `${retPerc}%`;
+                document.getElementById('statVal6').textContent = `${retPerc}%`;
             }
 
             pceHistoryBtn.onclick = async () => {
@@ -1292,6 +1369,8 @@
             document.getElementById('pce2Btn').onclick = () => { pceModal.classList.remove('show'); navCouple.click(); };
             document.getElementById('pce3Btn').onclick = () => { pceModal.classList.remove('show'); sitDownModal.classList.add('show'); loadSitDown(); };
             document.getElementById('pce4Btn').onclick = () => { pceModal.classList.remove('show'); ruleOfLifeModal.classList.add('show'); loadRuleOfLife(); };
+            document.getElementById('pce5Btn').onclick = () => { pceModal.classList.remove('show'); meditationModal.classList.add('show'); loadMeditation(); };
+            document.getElementById('pce6Btn').onclick = () => { pceModal.classList.remove('show'); retreatModal.classList.add('show'); loadRetreat(); };
 
             async function loadWord() {
                 const doc = await db.collection('users').doc(userId).collection('pces').doc('word').get();
@@ -1352,9 +1431,52 @@
                 ruleOfLifeModal.classList.remove('show');
             };
 
+            async function loadMeditation() {
+                const doc = await db.collection('users').doc(userId).collection('pces').doc('meditation').get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('meditationDuration').value = data.duration || '';
+                    document.getElementById('meditationNotes').value = data.notes || '';
+                }
+            }
+
+            saveMeditation.onclick = async () => {
+                const duration = document.getElementById('meditationDuration').value;
+                const notes = document.getElementById('meditationNotes').value;
+                const dateKey = getCurrentDateKey();
+                await db.collection('users').doc(userId).collection('pces').doc('meditation').set({ duration, notes, updatedAt: Date.now() });
+                await db.collection('users').doc(userId).collection('pce_history').add({
+                    type: 'Oração Pessoal', date: dateKey, content: `Duração: ${duration}min\nNotas: ${notes}`, timestamp: Date.now()
+                });
+                alert("Oração Pessoal salva!");
+                meditationModal.classList.remove('show');
+            };
+
+            async function loadRetreat() {
+                const doc = await db.collection('users').doc(userId).collection('pces').doc('retreat').get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('retreatDate').value = data.date || '';
+                    document.getElementById('retreatNotes').value = data.notes || '';
+                }
+            }
+
+            saveRetreat.onclick = async () => {
+                const date = document.getElementById('retreatDate').value;
+                const notes = document.getElementById('retreatNotes').value;
+                await db.collection('users').doc(userId).collection('pces').doc('retreat').set({ date, notes, updatedAt: Date.now() });
+                await db.collection('users').doc(userId).collection('pce_history').add({
+                    type: 'Retiro Anual', date: date, content: notes, timestamp: Date.now()
+                });
+                alert("Retiro Anual salvo!");
+                retreatModal.classList.remove('show');
+            };
+
             document.getElementById('closeWordModal').onclick = () => wordModal.classList.remove('show');
             document.getElementById('closeSitDownModal').onclick = () => sitDownModal.classList.remove('show');
             document.getElementById('closeRuleOfLifeModal').onclick = () => ruleOfLifeModal.classList.remove('show');
+            document.getElementById('closeMeditationModal').onclick = () => meditationModal.classList.remove('show');
+            document.getElementById('closeRetreatModal').onclick = () => retreatModal.classList.remove('show');
             document.getElementById('closePceModal').onclick = () => { pceModal.classList.remove('show'); setActiveNav('navHome'); };
             document.getElementById('closePceHistoryModal').onclick = () => pceHistoryModal.classList.remove('show');
 
@@ -1362,10 +1484,20 @@
             async function loadDiary() {
                 const list = document.getElementById('diaryList');
                 list.innerHTML = '<p>Carregando...</p>';
-                const snapshot = await db.collection('users').doc(userId).collection('prayers').orderBy('timestamp', 'desc').limit(20).get();
+                const snapshot = await db.collection('users').doc(userId).collection('prayers').orderBy('timestamp', 'desc').limit(50).get();
+                allDiaryEntries = [];
+                snapshot.forEach(doc => allDiaryEntries.push(doc.data()));
+                renderDiaryList(allDiaryEntries);
+            }
+
+            function renderDiaryList(entries) {
+                const list = document.getElementById('diaryList');
                 list.innerHTML = '';
-                snapshot.forEach(doc => {
-                    const data = doc.data();
+                if (entries.length === 0) {
+                    list.innerHTML = '<p style="text-align:center; color:var(--text-muted);">Nenhuma oração encontrada.</p>';
+                    return;
+                }
+                entries.forEach(data => {
                     const item = document.createElement('div');
                     item.className = 'diary-item';
                     item.innerHTML = `<div class="diary-date">${data.date}</div><div class="diary-method">${data.method || 'Simples'}</div>`;
@@ -1373,6 +1505,21 @@
                     list.appendChild(item);
                 });
             }
+
+            document.getElementById('diarySearch').oninput = (e) => {
+                const term = e.target.value.toLowerCase();
+                const filtered = allDiaryEntries.filter(entry => {
+                    const dateMatch = entry.date.toLowerCase().includes(term);
+                    const methodMatch = (entry.method || '').toLowerCase().includes(term);
+                    const gospelMatch = entry.gospel && entry.gospel.referencia.toLowerCase().includes(term);
+                    let reflectionMatch = false;
+                    if (entry.reflections) {
+                        reflectionMatch = Object.values(entry.reflections).some(val => val.toLowerCase().includes(term));
+                    }
+                    return dateMatch || methodMatch || gospelMatch || reflectionMatch;
+                });
+                renderDiaryList(filtered);
+            };
 
             function showDiaryDetail(data) {
                 currentDiaryEntry = data;
