@@ -34,10 +34,9 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
 
   const steps = {
     simples: [
-      { type: 'text', title: 'ORIENTAÇÃO', content: 'Leia com atenção o Evangelho de hoje' },
+      { type: 'text', title: 'ORIENTAÇÃO', content: 'Leia com atenção o Evangelho de hoje e deixe a Palavra tocar seu coração.' },
       ...gospelChunks.map((chunk, i) => ({ type: 'gospel_chunk', content: chunk, part: i + 1 })),
-      { type: 'input', title: 'REFLITA', content: 'O que mais tocou você nesta Palavra?', label: 'reflexao', placeholder: 'Sua reflexão...' },
-      { type: 'input', title: 'O QUE DEUS ESTÁ DIZENDO?', content: 'Como vou viver isso hoje?', label: 'aplicacao', placeholder: 'Sua aplicação...' },
+      { type: 'text', title: 'REFLITA EM SILÊNCIO', content: 'Reserve alguns momentos para deixar a Palavra ecoar em seu coração.' },
       { type: 'finish' }
     ],
     lectio: [
@@ -49,10 +48,11 @@ const PrayerSession = ({ method, liturgia, onCancel, onComplete }: PrayerSession
       { type: 'finish' }
     ],
     rapido: [
-      { type: 'text', title: 'ORIENTAÇÃO', content: 'Leia o Evangelho e responda rapidamente' },
+      { type: 'text', title: 'ORIENTAÇÃO', content: 'Leia o Evangelho e responda às perguntas práticas para hoje' },
       ...gospelChunks.map((chunk, i) => ({ type: 'gospel_chunk', content: chunk, part: i + 1 })),
-      { type: 'input', title: 'O QUE DEUS ESTÁ DIZENDO?', content: '', label: 'deus_diz', placeholder: 'Escreva aqui...' },
-      { type: 'input', title: 'O QUE VOU FAZER HOJE?', content: '', label: 'acao', placeholder: 'Minha ação concreta...' },
+      { type: 'input', title: 'O QUE ESTE TEXTO DIZ?', content: '', label: 'texto_diz', placeholder: 'Em poucas palavras...' },
+      { type: 'input', title: 'O QUE DEUS PEDE DE MIM?', content: '', label: 'deus_pede', placeholder: 'Deus está me pedindo...' },
+      { type: 'input', title: 'O QUE VOU VIVER HOJE?', content: '', label: 'viver_hoje', placeholder: 'Hoje vou...' },
       { type: 'finish' }
     ]
   }[method];
