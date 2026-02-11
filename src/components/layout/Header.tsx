@@ -17,8 +17,9 @@ const Header = ({
   celebration, 
   saint 
 }: HeaderProps) => {
-  const [liturgicalColor, setLiturgicalColor] = useState("#2c3e6b");
-  const goldColor = "#c9a84c"; // Dourado solicitado
+  // Iniciamos com o verde litúrgico como padrão
+  const [liturgicalColor, setLiturgicalColor] = useState("#2d5a27");
+  const goldColor = "#c9a84c";
 
   useEffect(() => {
     fetch('https://liturgia.up.railway.app/')
@@ -38,6 +39,8 @@ const Header = ({
       .catch(err => console.error("Erro ao buscar cor litúrgica:", err));
   }, []);
 
+  const isWhite = liturgicalColor === '#ffffff';
+
   return (
     <header 
       className="relative pt-12 pb-10 px-6 text-center text-white rounded-b-[2.5rem] shadow-xl transition-colors duration-1000"
@@ -53,25 +56,25 @@ const Header = ({
       </div>
 
       <div className="flex flex-col items-center gap-2">
-        <span className="text-3xl" style={{ color: liturgicalColor === '#ffffff' ? '#2c3e6b' : goldColor }}>✝</span>
-        <h1 className={`text-xl font-black tracking-[0.2em] uppercase ${liturgicalColor === '#ffffff' ? 'text-[#2c3e6b]' : 'text-white'}`}>
+        <span className="text-3xl" style={{ color: isWhite ? '#2c3e6b' : goldColor }}>✝</span>
+        <h1 className={`text-xl font-black tracking-[0.2em] uppercase ${isWhite ? 'text-[#2c3e6b]' : 'text-white'}`}>
           ENS DIA A DIA
         </h1>
-        <p className={`text-[10px] font-bold uppercase tracking-[0.3em] opacity-80 -mt-1 ${liturgicalColor === '#ffffff' ? 'text-[#2c3e6b]' : 'text-white'}`}>
+        <p className={`text-[10px] font-bold uppercase tracking-[0.3em] opacity-80 -mt-1 ${isWhite ? 'text-[#2c3e6b]' : 'text-white'}`}>
           Equipes de Nossa Senhora
         </p>
         
         <div className="mt-4">
-          <p className={`text-sm font-bold opacity-90 ${liturgicalColor === '#ffffff' ? 'text-[#2c3e6b]' : 'text-white'}`}>
+          <p className={`text-sm font-bold opacity-90 ${isWhite ? 'text-[#2c3e6b]' : 'text-white'}`}>
             {userName} & {partnerName}
           </p>
           {celebration && (
-            <p className={`text-xs italic opacity-80 mt-1 max-w-[280px] mx-auto leading-tight ${liturgicalColor === '#ffffff' ? 'text-[#2c3e6b]' : 'text-white'}`}>
+            <p className={`text-xs italic opacity-80 mt-1 max-w-[280px] mx-auto leading-tight ${isWhite ? 'text-[#2c3e6b]' : 'text-white'}`}>
               {celebration}
             </p>
           )}
           {saint && (
-            <p className="text-[10px] font-bold mt-1 uppercase tracking-wider" style={{ color: liturgicalColor === '#ffffff' ? '#2c3e6b' : goldColor }}>
+            <p className="text-[10px] font-bold mt-1 uppercase tracking-wider" style={{ color: isWhite ? '#2c3e6b' : goldColor }}>
               {saint}
             </p>
           )}
@@ -80,7 +83,7 @@ const Header = ({
         <div 
           className="mt-6 px-6 py-2 rounded-full text-[10px] font-black tracking-[0.2em] uppercase shadow-lg"
           style={{ 
-            backgroundColor: liturgicalColor === '#ffffff' ? '#2c3e6b' : goldColor,
+            backgroundColor: isWhite ? '#2c3e6b' : goldColor,
             color: 'white'
           }}
         >
