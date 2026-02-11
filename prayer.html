@@ -7,7 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/prayer/style.css">
+    <!-- Usando ./ para garantir que funcione em subdiretórios como no GitHub Pages -->
+    <link rel="stylesheet" href="./assets/prayer/style.css">
 </head>
 <body>
     <div class="liturgical-bar" id="liturgicalBar"></div>
@@ -58,8 +59,8 @@
     <div id="mainView" class="main-container">
         <div class="card">
             <div class="day-counter">
-                <span>🔥 0 dias este mês</span>
-                <span>⚡ 0 dias seguidos</span>
+                <span id="monthlyCount">🔥 0 dias este mês</span>
+                <span id="streakCount">⚡ 0 dias seguidos</span>
             </div>
             <p>Selecione um método para começar sua oração.</p>
         </div>
@@ -67,6 +68,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="/assets/prayer/script.js"></script>
+    <!-- Usando ./ para o script também -->
+    <script src="./assets/prayer/script.js"></script>
 </body>
 </html>
