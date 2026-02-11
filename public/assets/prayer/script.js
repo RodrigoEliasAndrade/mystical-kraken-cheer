@@ -743,7 +743,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             const color = colors[data.cor] || '#2c3e6b';
             liturgicalBar.style.backgroundColor = color;
-            appHeader.style.backgroundColor = color;
+            // appHeader.style.backgroundColor = color; // Removido para manter azul fixo
             
             if (data.celebracao) document.getElementById('liturgicalCelebration').textContent = data.celebracao;
             if (data.santo_do_dia) document.getElementById('saintOfTheDay').textContent = `Santo do Dia: ${data.santo_do_dia}`;

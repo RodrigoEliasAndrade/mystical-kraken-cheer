@@ -17,7 +17,8 @@ const Header = ({
   celebration, 
   saint 
 }: HeaderProps) => {
-  const bgColor = "#2c3e6b";
+  const bgColor = "#2c3e6b"; // Azul fixo solicitado
+  const goldColor = "#c9a84c"; // Dourado solicitado
 
   return (
     <header 
@@ -34,10 +35,13 @@ const Header = ({
       </div>
 
       <div className="flex flex-col items-center gap-2">
-        <span className="text-3xl text-[#c9a84c]">✝</span>
-        <h1 className="text-lg font-bold tracking-widest uppercase">ENS DIA A DIA</h1>
+        <span className="text-3xl" style={{ color: goldColor }}>✝</span>
+        <h1 className="text-xl font-black tracking-[0.2em] uppercase">ENS DIA A DIA</h1>
+        <p className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-80 -mt-1">
+          Equipes de Nossa Senhora
+        </p>
         
-        <div className="mt-2">
+        <div className="mt-4">
           <p className="text-sm font-bold opacity-90">
             {userName} & {partnerName}
           </p>
@@ -47,13 +51,16 @@ const Header = ({
             </p>
           )}
           {saint && (
-            <p className="text-[10px] font-bold text-[#c9a84c] mt-1 uppercase tracking-wider">
+            <p className="text-[10px] font-bold mt-1 uppercase tracking-wider" style={{ color: goldColor }}>
               {saint}
             </p>
           )}
         </div>
         
-        <div className="mt-4 px-5 py-1.5 bg-[#c9a84c] rounded-full text-[10px] font-bold tracking-[0.2em] uppercase text-white shadow-lg">
+        <div 
+          className="mt-6 px-6 py-2 rounded-full text-[10px] font-black tracking-[0.2em] uppercase text-white shadow-lg"
+          style={{ backgroundColor: goldColor }}
+        >
           Oração Diária
         </div>
       </div>
