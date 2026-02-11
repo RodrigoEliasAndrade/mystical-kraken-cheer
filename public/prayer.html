@@ -788,7 +788,7 @@
         </div>
 
         <span class="cross">✝</span>
-        <h1>Equipes de Nossa Senhora</h1>
+        <h1>ENS DIA A DIA</h1>
         <p id="headerNames" style="font-size: 0.95em; opacity: 0.9; margin-top: 5px; text-transform: none; font-weight: 700;"></p>
         <p id="liturgicalCelebration" style="font-size: 0.8em; font-style: italic; margin-top: 8px; opacity: 0.9; line-height: 1.4;"></p>
         <p id="saintOfTheDay" style="font-size: 0.75em; margin-top: 5px; opacity: 0.8; font-weight: 700;"></p>
@@ -1273,7 +1273,7 @@
             const commonPrayers = [
                 {
                     title: "Magnificat",
-                    text: "A minha alma engrandece o Senhor,\ne o meu espírito se alegra em Deus, meu Salvador.\nPorque pôs os olhos na humildade da sua serva:\nde hoje em diante me chamarão bem-aventurada todas as gerações.\nO Todo-Poderoso fez em mim maravilhas:\nSanto é o seu nome.\nA sua misericórdia se estende de geração em geração\nsobre aqueles que O temem.\nManifestou o poder do seu braço\ne dispersou os soberbos.\nDerrubou os poderosos de seus tronos\ne exaltou os humildes.\nAos famintos encheu de bens\ne aos ricos despediu de mãos vazias.\nAcolheu a Israel, seu servo,\nlembrado da sua misericórdia,\ncomo tinha prometido a nossos pais,\na Abraão e à sua descendência para sempre.\nGlória ao Pai e ao Filho e ao Espírito Santo,\ncomo era no princípio, agora e sempre. Amém."
+                    text: "A minha alma engrandece o Senhor,\ne o meu espírito se alegra em Deus, meu Salvador.\nPorque pôs os olhos na humildade da sua serva:\nde hoje em diante me chamarão bem-aventurada todas as gerações.\nO Todo-Poderoso fez em mim maravilhas:\nSanto é o seu nome.\nA sua misericórdia se estende de geração em geração\nsobre aqueles que O temem.\nManifestou o poder do seu braço\ne dispersou os soberbos.\nDerrubou os poderosos de seus tronos\ne exaltou os humildes.\nAos famintos encheu de bens\ne aos ricos despediu de mãos vazias.\nAcolheu a Israel, seu servo,\nlembrado da sua misericórdia,\ncomo tinha proibido a nossos pais,\na Abraão e à sua descendência para sempre.\nGlória ao Pai e ao Filho e ao Espírito Santo,\ncomo era no princípio, agora e sempre. Amém."
                 },
                 {
                     title: "Oração da Equipe",
@@ -1631,7 +1631,7 @@
 
             document.getElementById('pce1Btn').onclick = () => { pceModal.classList.remove('show'); wordModal.classList.add('show'); loadWord(); };
             document.getElementById('pce2Btn').onclick = () => { pceModal.classList.remove('show'); navCouple.click(); };
-            document.getElementById('pce3Btn').onclick = () => { pceModal.classList.remove('show'); sitDownModal.classList.add('show'); loadWord(); };
+            document.getElementById('pce3Btn').onclick = () => { pceModal.classList.remove('show'); sitDownModal.classList.add('show'); loadSitDown(); };
             document.getElementById('pce4Btn').onclick = () => { pceModal.classList.remove('show'); ruleOfLifeModal.classList.add('show'); loadRuleOfLife(); };
             document.getElementById('pce5Btn').onclick = () => { pceModal.classList.remove('show'); meditationModal.classList.add('show'); loadMeditation(); };
             document.getElementById('pce6Btn').onclick = () => { pceModal.classList.remove('show'); retreatModal.classList.add('show'); loadRetreat(); };
@@ -1731,6 +1731,7 @@
             saveRetreat.onclick = async () => {
                 const date = document.getElementById('retreatDate').value;
                 const notes = document.getElementById('retreatNotes').value;
+                const dateKey = getCurrentDateKey();
                 await db.collection('users').doc(userId).collection('pces').doc('retreat').set({ date, notes, updatedAt: Date.now() });
                 await db.collection('users').doc(userId).collection('pce_history').add({
                     type: 'Retiro Anual', date: date, content: notes, timestamp: Date.now()
