@@ -1731,6 +1731,7 @@
             saveRetreat.onclick = async () => {
                 const date = document.getElementById('retreatDate').value;
                 const notes = document.getElementById('retreatNotes').value;
+                const dateKey = getCurrentDateKey();
                 await db.collection('users').doc(userId).collection('pces').doc('retreat').set({ date, notes, updatedAt: Date.now() });
                 await db.collection('users').doc(userId).collection('pce_history').add({
                     type: 'Retiro Anual', date: date, content: notes, timestamp: Date.now()
