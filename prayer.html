@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Oração Diária - Equipes de Nossa Senhora</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- No GitHub Pages, precisamos incluir a pasta 'public' no caminho se estivermos servindo a raiz -->
+    <link rel="stylesheet" href="public/assets/prayer/style.css">
+</head>
+<body>
+    <div class="liturgical-bar" id="liturgicalBar"></div>
+
+    <header class="app-header" id="appHeader">
+        <div class="header-icons">
+            <button id="commonPrayersBtn" class="icon-btn" title="Orações Comuns">📜</button>
+            <button id="themeToggle" class="icon-btn" title="Alternar Tema">🌓</button>
+            <button id="notificationBtn" class="icon-btn notification-btn inactive" title="Notificações">🔕</button>
+        </div>
+        
+        <span class="cross" style="font-size: 2em; display: block; margin-bottom: 10px;">✝</span>
+        <h1 style="margin: 0; font-weight: 900; letter-spacing: 2px;">ENS DIA A DIA</h1>
+        <p id="headerNames" style="font-size: 0.95em; opacity: 0.9; margin-top: 5px; text-transform: none; font-weight: 700;"></p>
+        <p id="liturgicalCelebration" style="font-size: 0.8em; font-style: italic; margin-top: 8px; opacity: 0.9; line-height: 1.4;"></p>
+        <p id="saintOfTheDay" style="font-size: 0.75em; margin-top: 5px; opacity: 0.8; font-weight: 700;"></p>
+        <div style="margin-top: 15px; display: inline-block; background: #c9a84c; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.7em; font-weight: 700; letter-spacing: 1px;">ORAÇÃO DIÁRIA</div>
+    </header>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" id="navHome">
+            <span class="nav-icon">🏠</span>
+            <span>Início</span>
+        </div>
+        <div class="nav-item" id="navPce">
+            <span class="nav-icon">🎯</span>
+            <span>PCEs</span>
+        </div>
+        <div class="nav-item" id="navDiary">
+            <span class="nav-icon">📖</span>
+            <span>Diário</span>
+        </div>
+        <div class="nav-item" id="navCouple">
+            <span class="nav-icon">💑</span>
+            <span>Casal</span>
+        </div>
+    </nav>
+
+    <div id="welcomeModal" class="modal-overlay show">
+        <div class="modal-content">
+            <h2 style="color: #2c3e6b; margin-bottom: 10px;">Bem-vindo!</h2>
+            <p style="color: #666; margin-bottom: 20px;">Para começar sua jornada de oração, como podemos te chamar?</p>
+            <input type="text" id="userNameInput" placeholder="Seu nome" style="width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 12px; border: 2px solid #e8f0f7; font-family: inherit; font-size: 1em; outline: none;">
+            <button id="startAppBtn" class="btn btn-primary" style="background: #c9a84c; border: none; padding: 15px; border-radius: 12px; color: white; font-weight: 700; width: 100%; cursor: pointer;">Começar</button>
+        </div>
+    </div>
+
+    <div id="mainView" class="main-container" style="padding: 20px; max-width: 500px; margin: 0 auto;">
+        <div class="card" style="background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #e8f0f7;">
+            <div class="day-counter" style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 0.85em; font-weight: 800; color: #c9a84c; text-transform: uppercase; letter-spacing: 0.5px;">
+                <span id="monthlyCount">🔥 0 dias este mês</span>
+                <span id="streakCount">⚡ 0 dias seguidos</span>
+            </div>
+            <p style="text-align: center; color: #666; font-size: 0.9em; line-height: 1.6;">Selecione um método para começar sua oração diária e fortalecer sua caminhada.</p>
+        </div>
+    </div>
+
+    <!-- Scripts do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <!-- Caminho corrigido para o script -->
+    <script src="public/assets/prayer/script.js"></script>
+</body>
+</html>

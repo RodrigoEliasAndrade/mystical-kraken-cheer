@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(() => ({
-  base: "./", // Importante para o GitHub Pages
+  base: "./",
   server: {
     host: "::",
     port: 8080,
@@ -16,6 +16,11 @@ export default defineConfig(() => ({
     },
   },
   build: {
-    outDir: 'dist',
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        prayer: path.resolve(__dirname, 'prayer.html'),
+      },
+    },
   },
 }));
