@@ -4,7 +4,6 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(() => ({
-  // Define a base como relativa para suportar GitHub Pages em subdiretórios
   base: "./",
   server: {
     host: "::",
