@@ -2,11 +2,12 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Oração Diária - Equipes de Nossa Senhora</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- O Vite resolverá este caminho a partir da pasta public durante o build -->
     <link rel="stylesheet" href="assets/prayer/style.css">
 </head>
 <body>
@@ -50,23 +51,25 @@
         <div class="modal-content">
             <h2>Bem-vindo!</h2>
             <p>Para começar sua jornada de oração, como podemos te chamar?</p>
-            <input type="text" id="userNameInput" placeholder="Seu nome" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ccc;">
+            <input type="text" id="userNameInput" placeholder="Seu nome" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ccc; background: white; color: black;">
             <button id="startAppBtn" class="btn btn-primary">Começar</button>
         </div>
     </div>
 
     <div id="mainView" class="main-container">
         <div class="card">
-            <div class="day-counter">
+            <div class="day-counter" style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 0.8em; font-weight: bold; color: var(--accent);">
                 <span id="monthlyCount">🔥 0 dias este mês</span>
                 <span id="streakCount">⚡ 0 dias seguidos</span>
             </div>
-            <p>Selecione um método para começar sua oração.</p>
+            <p style="text-align: center; color: var(--text-muted);">Selecione um método para começar sua oração.</p>
         </div>
     </div>
 
+    <!-- Scripts do Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <!-- O Vite resolverá este caminho a partir da pasta public -->
     <script src="assets/prayer/script.js"></script>
 </body>
 </html>
