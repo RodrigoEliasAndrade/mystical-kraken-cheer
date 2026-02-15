@@ -2,20 +2,33 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { db } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { format, addMonths, startOfMonth } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface DeverSentarScheduleProps {
   coupleId: string;
-  currentSchedule?: any;
+  deverData?: any;
   onBack: () => void;
 }
 
-const DeverSentarSchedule = ({ coupleId, currentSchedule, onBack }: DeverSentarScheduleProps) => {
+const DeverSentarSchedule = ({ coupleId, deverData, onBack }: DeverSentarScheduleProps) => {
+  // Determina se estamos agendando para este mês ou para o próximo
+  const today = new Date();
+  const thisMonthKey = format(today, 'yyyy-MM');
+  const nextMonthKey = format(addMonths(today, 1), 'yyyy-MM');
+  
+  const isCompletedThisMonth = deverData?.lastCompleted?.startsWith(thisMonthKey);
+  const initialMonth = isCompletedThisMonth ? addMonths(today, 1) : today;
+  
+  const [targetDate, setTargetDate] = useState(initialMonth);
+  const monthKey = format(targetDate, 'yyyy-MM');
+  
+  const currentSchedule = deverData?.schedules?.[monthKey];
   const [dayOfMonth, setDayOfMonth] = useState(currentSchedule?.dayOfMonth ?? 15);
   const [time, setTime] = useState(currentSchedule?.time ?? "21:00");
   const [isSaving, setIsSaving] = useState(false);
@@ -27,14 +40,16 @@ const DeverSentarSchedule = ({ coupleId, currentSchedule, onBack }: DeverSentarS
     try {
       const deverRef = doc(db, 'couples', coupleId, 'pces', 'deverSentar');
       await setDoc(deverRef, {
-        schedule: {
-          dayOfMonth: dayOfMonth,
-          time: time,
-          reminderEnabled: true
+        schedules: {
+          [monthKey]: {
+            dayOfMonth: dayOfMonth,
+            time: time,
+            reminderEnabled: true
+          }
         }
       }, { merge: true });
       
-      toast.success("Agendamento mensal salvo! 📅");
+      toast.success(`Agendamento de ${format(targetDate, 'MMMM', { locale: ptBR })} salvo! 📅`);
       onBack();
     } catch (error) {
       toast.error("Erro ao salvar agendamento.");
@@ -49,13 +64,37 @@ const DeverSentarSchedule = ({ coupleId, currentSchedule, onBack }: DeverSentarS
         <Button variant="ghost" size="icon" onClick={onBack} className="rounded-full">
           <ArrowLeft size={20} />
         </Button>
-        <h2 className="text-xl font-bold text-[#2c3e6b]">Agendamento Mensal</h2>
+        <h2 className="text-xl font-bold text-[#2c3e6b]">Agendar Momento</h2>
+      </div>
+
+      <div className="bg-[#f5f5f5] p-4 rounded-2xl flex items-center justify-between">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => setTargetDate(addMonths(targetDate, -1))}
+          disabled={format(targetDate, 'yyyy-MM') === thisMonthKey}
+        >
+          <ChevronLeft size={20} />
+        </Button>
+        <div className="text-center">
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#c9a84c]">Mês de Referência</p>
+          <p className="text-sm font-bold text-[#2c3e6b] capitalize">
+            {format(targetDate, 'MMMM yyyy', { locale: ptBR })}
+          </p>
+        </div>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => setTargetDate(addMonths(targetDate, 1))}
+        >
+          <ChevronRight size={20} />
+        </Button>
       </div>
 
       <div className="space-y-6">
         <div className="space-y-3">
           <label className="text-[10px] font-black uppercase tracking-widest text-[#2c3e6b] ml-1 flex items-center gap-2">
-            <Calendar size={12} /> Dia do Mês
+            <Calendar size={12} /> Escolha o Dia
           </label>
           <div className="grid grid-cols-7 gap-1.5">
             {days.map((d) => (
@@ -77,7 +116,7 @@ const DeverSentarSchedule = ({ coupleId, currentSchedule, onBack }: DeverSentarS
 
         <div className="space-y-3">
           <label className="text-[10px] font-black uppercase tracking-widest text-[#2c3e6b] ml-1 flex items-center gap-2">
-            <Clock size={12} /> Horário Preferido
+            <Clock size={12} /> Horário
           </label>
           <Input 
             type="time"
@@ -92,7 +131,7 @@ const DeverSentarSchedule = ({ coupleId, currentSchedule, onBack }: DeverSentarS
           disabled={isSaving}
           className="w-full h-14 rounded-2xl bg-[#2c3e6b] text-white font-bold text-lg shadow-lg"
         >
-          {isSaving ? "Salvando..." : "Confirmar Agendamento"}
+          {isSaving ? "Salvando..." : "Confirmar para este mês"}
         </Button>
       </div>
     </div>

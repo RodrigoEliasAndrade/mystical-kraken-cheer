@@ -27,11 +27,14 @@ const PrayerCalendar = ({ completedDays, deverData, onDayClick }: PrayerCalendar
 
   const getDeverMarker = (day: Date) => {
     const dateKey = format(day, 'yyyy-MM-dd');
+    const monthKey = format(day, 'yyyy-MM');
+    
     const isCompleted = deverData?.completions?.includes(dateKey) || 
                         deverData?.notes?.some((n: any) => n.date === dateKey);
     
-    // Agendamento agora baseado no dia do mês
-    const isScheduled = deverData?.schedule?.dayOfMonth === getDate(day);
+    // Busca o agendamento específico deste mês/ano
+    const scheduleForMonth = deverData?.schedules?.[monthKey];
+    const isScheduled = scheduleForMonth?.dayOfMonth === getDate(day);
 
     if (isCompleted) {
       return isToday(day) ? '💚' : '✅';

@@ -11,7 +11,7 @@ import PrayerSession from '@/components/home/PrayerSession';
 import ConjugalPrayerModal from '@/components/home/ConjugalPrayerModal';
 import DeverSentarModal from '@/components/home/DeverSentarModal';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format } from 'date-fns';
+import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { db } from '@/lib/firebase';
@@ -31,7 +31,9 @@ const Index = () => {
   
   const coupleId = "couple_demo_123";
   const userId = "user_demo_456";
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const today = new Date();
+  const todayKey = format(today, 'yyyy-MM-dd');
+  const thisMonthKey = format(today, 'yyyy-MM');
 
   useEffect(() => {
     fetch('https://liturgia.up.railway.app/')
@@ -46,7 +48,7 @@ const Index = () => {
     const unsubPrayer = onSnapshot(prayerRef, (doc) => {
       if (doc.exists()) {
         const data = doc.data();
-        setConjugalCompleted(!!data[today]?.completed);
+        setConjugalCompleted(!!data[todayKey]?.completed);
       }
     });
 
@@ -61,7 +63,7 @@ const Index = () => {
       unsubPrayer();
       unsubDever();
     };
-  }, [coupleId, today]);
+  }, [coupleId, todayKey]);
 
   const handleSelectMethod = (method: 'simples' | 'lectio' | 'rapido') => {
     setActiveMethod(method);
@@ -69,7 +71,7 @@ const Index = () => {
   };
 
   const handleCompletePrayer = (reflections: any) => {
-    const newCompleted = [...new Set([...completedDays, today])];
+    const newCompleted = [...new Set([...completedDays, todayKey])];
     setCompletedDays(newCompleted);
     localStorage.setItem('prayerCompletedDays', JSON.stringify(newCompleted));
     setActiveMethod(null);
@@ -87,12 +89,26 @@ const Index = () => {
     }
   };
 
-  const isTodayCompleted = completedDays.includes(today);
-  const isDeverCompletedToday = deverData?.lastCompleted === today;
+  const isTodayCompleted = completedDays.includes(todayKey);
+  const isDeverCompletedThisMonth = deverData?.lastCompleted?.startsWith(thisMonthKey);
 
-  const getDeverScheduleText = () => {
-    if (!deverData?.schedule) return "📅 Próximo: 15/02";
-    return `⏰ Agendado: Todo dia ${deverData.schedule.dayOfMonth} às ${deverData.schedule.time}`;
+  const getDeverStatusText = () => {
+    if (isDeverCompletedThisMonth) return "✅ Concluído este mês";
+    return "⏳ Aguardando diálogo";
+  };
+
+  const getDeverInfoText = () => {
+    if (isDeverCompletedThisMonth) {
+      const nextMonth = addMonths(today, 1);
+      const nextMonthKey = format(nextMonth, 'yyyy-MM');
+      const nextSchedule = deverData?.schedules?.[nextMonthKey];
+      if (nextSchedule) return `📅 Próximo: ${nextSchedule.dayOfMonth}/${format(nextMonth, 'MM')}`;
+      return "✨ Agendar próximo mês";
+    }
+    
+    const currentSchedule = deverData?.schedules?.[thisMonthKey];
+    if (currentSchedule) return `⏰ Agendado: Dia ${currentSchedule.dayOfMonth} às ${currentSchedule.time}`;
+    return "📅 Agendar para este mês";
   };
 
   return (
@@ -139,9 +155,9 @@ const Index = () => {
               <PceCard 
                 icon="💬" 
                 title="Dever de Sentar-se Mensal" 
-                status={isDeverCompletedToday ? "✅ Completo hoje" : "⏳ Aguardando"} 
-                isCompleted={isDeverCompletedToday}
-                info={getDeverScheduleText()} 
+                status={getDeverStatusText()} 
+                isCompleted={isDeverCompletedThisMonth}
+                info={getDeverInfoText()} 
                 onClick={() => {
                   setDeverModalView('main');
                   setShowDeverModal(true);
