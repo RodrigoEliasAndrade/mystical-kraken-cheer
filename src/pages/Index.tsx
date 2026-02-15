@@ -12,6 +12,7 @@ import ConjugalPrayerModal from '@/components/home/ConjugalPrayerModal';
 import DeverSentarModal from '@/components/home/DeverSentarModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { db } from '@/lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
@@ -21,12 +22,13 @@ const Index = () => {
   const [showMethods, setShowMethods] = useState(false);
   const [showConjugalModal, setShowConjugalModal] = useState(false);
   const [showDeverModal, setShowDeverModal] = useState(false);
+  const [deverModalView, setDeverModalView] = useState<'main' | 'details'>('main');
+  const [selectedDate, setSelectedDate] = useState<string | undefined>();
   const [activeMethod, setActiveMethod] = useState<'simples' | 'lectio' | 'rapido' | null>(null);
   const [completedDays, setCompletedDays] = useState<string[]>([]);
   const [conjugalCompleted, setConjugalCompleted] = useState(false);
   const [deverData, setDeverData] = useState<any>(null);
   
-  // Mock IDs for now
   const coupleId = "couple_demo_123";
   const userId = "user_demo_456";
   const today = format(new Date(), 'yyyy-MM-dd');
@@ -40,7 +42,6 @@ const Index = () => {
     const saved = localStorage.getItem('prayerCompletedDays');
     if (saved) setCompletedDays(JSON.parse(saved));
 
-    // Listener para Oração Conjugal
     const prayerRef = doc(db, 'couples', coupleId, 'conjugalPrayer', 'dates');
     const unsubPrayer = onSnapshot(prayerRef, (doc) => {
       if (doc.exists()) {
@@ -49,7 +50,6 @@ const Index = () => {
       }
     });
 
-    // Listener para Dever de Sentar-se
     const deverRef = doc(db, 'couples', coupleId, 'pces', 'deverSentar');
     const unsubDever = onSnapshot(deverRef, (doc) => {
       if (doc.exists()) {
@@ -76,8 +76,25 @@ const Index = () => {
     toast.success("Oração concluída! Que Deus te abençoe!");
   };
 
+  const handleCalendarClick = (date: string, type: string) => {
+    setSelectedDate(date);
+    if (type === 'dever_completed') {
+      setDeverModalView('details');
+      setShowDeverModal(true);
+    } else if (type === 'dever_scheduled') {
+      setDeverModalView('main');
+      setShowDeverModal(true);
+    }
+  };
+
   const isTodayCompleted = completedDays.includes(today);
   const isDeverCompletedToday = deverData?.lastCompleted === today;
+
+  const getDeverScheduleText = () => {
+    if (!deverData?.schedule) return "📅 Próximo: 15/02";
+    const days = ['Domingos', 'Segundas', 'Terças', 'Quartas', 'Quintas', 'Sextas', 'Sábados'];
+    return `⏰ Agendado: ${days[deverData.schedule.dayOfWeek]} às ${deverData.schedule.time}`;
+  };
 
   return (
     <div className="min-h-screen bg-[#f5f5f5] pb-24">
@@ -93,7 +110,11 @@ const Index = () => {
           transition={{ duration: 0.4 }}
           className="space-y-8"
         >
-          <PrayerCalendar completedDays={completedDays} />
+          <PrayerCalendar 
+            completedDays={completedDays} 
+            deverData={deverData}
+            onDayClick={handleCalendarClick}
+          />
           
           <section>
             <h2 className="text-xs font-black uppercase tracking-[0.2em] text-[#2c3e6b] mb-4 px-1">
@@ -121,8 +142,11 @@ const Index = () => {
                 title="Dever de Sentar-se Mensal" 
                 status={isDeverCompletedToday ? "✅ Completo hoje" : "⏳ Aguardando"} 
                 isCompleted={isDeverCompletedToday}
-                info={deverData?.monthlyCount ? `✨ ${deverData.monthlyCount} no mês` : "📅 Próximo: 15/02"} 
-                onClick={() => setShowDeverModal(true)}
+                info={getDeverScheduleText()} 
+                onClick={() => {
+                  setDeverModalView('main');
+                  setShowDeverModal(true);
+                }}
               />
               <PceCard icon="📝" title="Regra de Vida Mensal" status="Aguardando" info="📅 Revisão: 28/02" />
               <PceCard icon="👥" title="Reunião de Equipe Mensal" status="Pendente" info="📅 Data: 20/02" />
@@ -168,6 +192,9 @@ const Index = () => {
             coupleId={coupleId}
             onClose={() => setShowDeverModal(false)}
             onSuccess={() => {}}
+            initialView={deverModalView}
+            selectedDate={selectedDate}
+            deverData={deverData}
           />
         )}
       </AnimatePresence>
