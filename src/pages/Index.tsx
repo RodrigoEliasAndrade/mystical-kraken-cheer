@@ -9,6 +9,7 @@ import PceCard from '@/components/home/PceCard';
 import PrayerMethods from '@/components/home/PrayerMethods';
 import PrayerSession from '@/components/home/PrayerSession';
 import ConjugalPrayerModal from '@/components/home/ConjugalPrayerModal';
+import DeverSentarModal from '@/components/home/DeverSentarModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -19,9 +20,11 @@ const Index = () => {
   const [liturgia, setLiturgia] = useState<any>(null);
   const [showMethods, setShowMethods] = useState(false);
   const [showConjugalModal, setShowConjugalModal] = useState(false);
+  const [showDeverModal, setShowDeverModal] = useState(false);
   const [activeMethod, setActiveMethod] = useState<'simples' | 'lectio' | 'rapido' | null>(null);
   const [completedDays, setCompletedDays] = useState<string[]>([]);
   const [conjugalCompleted, setConjugalCompleted] = useState(false);
+  const [deverData, setDeverData] = useState<any>(null);
   
   // Mock IDs for now
   const coupleId = "couple_demo_123";
@@ -37,16 +40,27 @@ const Index = () => {
     const saved = localStorage.getItem('prayerCompletedDays');
     if (saved) setCompletedDays(JSON.parse(saved));
 
+    // Listener para Oração Conjugal
     const prayerRef = doc(db, 'couples', coupleId, 'conjugalPrayer', 'dates');
-    const unsubscribe = onSnapshot(prayerRef, (doc) => {
+    const unsubPrayer = onSnapshot(prayerRef, (doc) => {
       if (doc.exists()) {
         const data = doc.data();
-        // Verifica se existe o registro de hoje e se o campo 'completed' é true
         setConjugalCompleted(!!data[today]?.completed);
       }
     });
 
-    return () => unsubscribe();
+    // Listener para Dever de Sentar-se
+    const deverRef = doc(db, 'couples', coupleId, 'pces', 'deverSentar');
+    const unsubDever = onSnapshot(deverRef, (doc) => {
+      if (doc.exists()) {
+        setDeverData(doc.data());
+      }
+    });
+
+    return () => {
+      unsubPrayer();
+      unsubDever();
+    };
   }, [coupleId, today]);
 
   const handleSelectMethod = (method: 'simples' | 'lectio' | 'rapido') => {
@@ -63,6 +77,7 @@ const Index = () => {
   };
 
   const isTodayCompleted = completedDays.includes(today);
+  const isDeverCompletedToday = deverData?.lastCompleted === today;
 
   return (
     <div className="min-h-screen bg-[#f5f5f5] pb-24">
@@ -101,7 +116,14 @@ const Index = () => {
                 info="📍 Horário: 21h15"
                 onClick={() => setShowConjugalModal(true)}
               />
-              <PceCard icon="💬" title="Dever de Sentar-se Mensal" status="Aguardando" info="📅 Próximo: 15/02" />
+              <PceCard 
+                icon="💬" 
+                title="Dever de Sentar-se Mensal" 
+                status={isDeverCompletedToday ? "✅ Completo hoje" : "⏳ Aguardando"} 
+                isCompleted={isDeverCompletedToday}
+                info={deverData?.monthlyCount ? `✨ ${deverData.monthlyCount} no mês` : "📅 Próximo: 15/02"} 
+                onClick={() => setShowDeverModal(true)}
+              />
               <PceCard icon="📝" title="Regra de Vida Mensal" status="Aguardando" info="📅 Revisão: 28/02" />
               <PceCard icon="👥" title="Reunião de Equipe Mensal" status="Pendente" info="📅 Data: 20/02" />
               <PceCard icon="⛪" title="Retiro Anual" status="Pendente" />
@@ -136,6 +158,16 @@ const Index = () => {
             userId={userId}
             onClose={() => setShowConjugalModal(false)}
             onSuccess={() => setConjugalCompleted(true)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showDeverModal && (
+          <DeverSentarModal 
+            coupleId={coupleId}
+            onClose={() => setShowDeverModal(false)}
+            onSuccess={() => {}}
           />
         )}
       </AnimatePresence>
