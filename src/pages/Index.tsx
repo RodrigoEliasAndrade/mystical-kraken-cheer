@@ -92,8 +92,7 @@ const Index = () => {
 
   const getDeverScheduleText = () => {
     if (!deverData?.schedule) return "📅 Próximo: 15/02";
-    const days = ['Domingos', 'Segundas', 'Terças', 'Quartas', 'Quintas', 'Sextas', 'Sábados'];
-    return `⏰ Agendado: ${days[deverData.schedule.dayOfWeek]} às ${deverData.schedule.time}`;
+    return `⏰ Agendado: Todo dia ${deverData.schedule.dayOfMonth} às ${deverData.schedule.time}`;
   };
 
   return (

@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, getDay } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, getDate } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
@@ -29,7 +29,9 @@ const PrayerCalendar = ({ completedDays, deverData, onDayClick }: PrayerCalendar
     const dateKey = format(day, 'yyyy-MM-dd');
     const isCompleted = deverData?.completions?.includes(dateKey) || 
                         deverData?.notes?.some((n: any) => n.date === dateKey);
-    const isScheduled = deverData?.schedule?.dayOfWeek === getDay(day);
+    
+    // Agendamento agora baseado no dia do mês
+    const isScheduled = deverData?.schedule?.dayOfMonth === getDate(day);
 
     if (isCompleted) {
       return isToday(day) ? '💚' : '✅';
