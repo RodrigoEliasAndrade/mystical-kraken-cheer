@@ -1,161 +1,69 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { X, CheckCircle2, MessageSquare, ArrowLeft, Send, Clock } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
+import { X } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { db } from '@/lib/firebase';
-import { doc, setDoc, collection, addDoc, getDocs, query, orderBy, limit, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, addDoc } from 'firebase/firestore';
 import { format } from 'date-fns';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import ConjugalPrayerFlow from './ConjugalPrayerFlow';
 
 interface ConjugalPrayerModalProps {
   onClose: () => void;
   coupleId: string;
   userId: string;
   onSuccess: () => void;
+  liturgia?: any;
 }
 
-type View = 'initial' | 'reason' | 'success' | 'counseling' | 'advice' | 'feedback_reason';
-
-const REASONS = [
-  { id: 'tempo', label: 'Falta de tempo' },
-  { id: 'cansaco', label: 'Cansaço' },
-  { id: 'conflito', label: 'Conflito entre nós' },
-  { id: 'distracoes', label: 'Distrações' },
-  { id: 'conhecimento', label: 'Não sabemos como fazer' },
-  { id: 'outro', label: 'Outro motivo' },
-];
-
-const FEEDBACK_REASONS = [
-  { id: 'complexo', label: 'Muito complexo' },
-  { id: 'generico', label: 'Muito genérico' },
-  { id: 'impraticavel', label: 'Impraticável hoje' },
-  { id: 'desconectado', label: 'Fora da minha realidade' },
-];
-
-const ConjugalPrayerModal = ({ onClose, coupleId, userId, onSuccess }: ConjugalPrayerModalProps) => {
-  const [view, setView] = useState<View>('initial');
-  const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
+const ConjugalPrayerModal = ({ onClose, coupleId, userId, onSuccess, liturgia }: ConjugalPrayerModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [scheduleTime, setScheduleTime] = useState("21:15");
-  const [problemText, setProblemText] = useState("");
-  const [advice, setAdvice] = useState("");
-  const [currentAdviceId, setCurrentAdviceId] = useState("");
 
-  const today = format(new Date(), 'yyyy-MM-dd');
-
-  const gerarConselhoSimulado = async (problema: string) => {
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    const problemaLower = problema.toLowerCase();
-    
-    if (problemaLower.includes('tempo') || problemaLower.includes('cansaço') || problemaLower.includes('ocupados')) {
-      return `**Por que é difícil encontrar tempo para Deus?**\n\nPadre Caffarel descobriu algo surpreendente: a dificuldade não está em não ter tempo - está em não entender que a oração conjugal não precisa ser longa.\n\nSão Francisco de Sales nos ensina: "Meia hora de oração é o ideal, mas se não tiver tempo, dez minutos bastam."\n\n**Para esta semana:** Escolham apenas 3 minutos. Sentem juntos, segurem as mãos, e um diz: "Obrigado Senhor por..." e o outro completa. Simples assim.`;
-    } 
-    if (problemaLower.includes('conflito') || problemaLower.includes('briga') || problemaLower.includes('desacordo')) {
-      return `**Rezar quando há tensão entre vocês**\n\nSanta Mônica rezou por 30 anos pelo marido difícil. Sabe o que ela descobriu? Que a oração não muda o outro primeiro - muda nosso coração.\n\n**A verdade libertadora:** Vocês não precisam resolver o conflito ANTES de rezar. Rezem COM o conflito. Sentem lado a lado e simplesmente digam: "Senhor, estamos aqui." Deus age no silêncio.`;
-    }
-    return `**Começar é mais importante que fazer perfeito**\n\nSanto Agostinho dizia: "Reza como podes, não como não podes." Vocês não precisam ser santos para começar a rezar juntos.\n\n**Ação para hoje:** Escolham um momento fixo. Apenas 2 minutos. Um de vocês agradece a Deus por UMA coisa, o outro também. Terminem com "Amém" juntos.`;
-  };
-
-  const handleMarkAsDone = async () => {
+  const handleComplete = async (data: any) => {
     setIsSubmitting(true);
     try {
+      const today = format(new Date(), 'yyyy-MM-dd');
       const prayerRef = doc(db, 'couples', coupleId, 'conjugalPrayer', 'dates');
+      
+      // Salva a conclusão diária
       await setDoc(prayerRef, { 
-        [today]: { completed: true, timestamp: Date.now() } 
+        [today]: { 
+          completed: true, 
+          timestamp: Date.now(),
+          duration: data.duration,
+          wisdomDay: data.wisdomDay
+        } 
       }, { merge: true });
-      
-      setView('success');
-      onSuccess();
-      setTimeout(() => onClose(), 2500);
-    } catch (error) {
-      toast.error("Erro ao salvar.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
-  const handleSaveMissed = async () => {
-    setIsSubmitting(true);
-    try {
-      const missedRef = doc(db, 'couples', coupleId, 'conjugalPrayer', 'missed');
-      await setDoc(missedRef, { 
-        [today]: { reasons: selectedReasons, timestamp: Date.now() } 
-      }, { merge: true });
-      
-      toast.info("Entendemos. Vamos tentar amanhã! 💪");
-      onClose();
-    } catch (error) {
-      toast.error("Erro ao salvar justificativa.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSaveSchedule = async () => {
-    try {
-      const scheduleRef = doc(db, 'couples', coupleId, 'conjugalPrayer', 'schedule');
-      await setDoc(scheduleRef, { 
-        time: scheduleTime,
-        reminderEnabled: true,
-        updatedAt: Date.now()
-      });
-      toast.success("Horário salvo! Você receberá lembretes.");
-    } catch (error) {
-      toast.error("Erro ao salvar horário.");
-    }
-  };
-
-  const handleSendCounseling = async () => {
-    if (!problemText.trim()) return;
-    setIsSubmitting(true);
-    try {
-      const adviceText = await gerarConselhoSimulado(problemText);
-      setAdvice(adviceText);
-      const docRef = await addDoc(collection(db, 'users', userId, 'spiritualGuidance'), {
-        timestamp: Date.now(),
-        problema: problemText,
-        conselho: adviceText,
-        tipo: 'oracao_conjugal',
-        feedback: null
-      });
-      setCurrentAdviceId(docRef.id);
-      setView('advice');
-    } catch (error) {
-      toast.error("Erro ao processar aconselhamento.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleFeedback = async (type: string) => {
-    try {
-      const adviceRef = doc(db, 'users', userId, 'spiritualGuidance', currentAdviceId);
-      await updateDoc(adviceRef, { feedback: type });
-      if (type === '🤔 Não sei' || type === '👎 Não gostei') {
-        setView('feedback_reason');
-      } else {
-        toast.success("Obrigado pelo seu feedback! 🙏");
-        onClose();
+      // Salva no histórico/diário se houver nota
+      if (data.journalEntry) {
+        await addDoc(collection(db, 'users', userId, 'prayers'), {
+          date: today,
+          method: 'conjugal',
+          reflections: { journal: data.journalEntry },
+          duration: data.duration,
+          timestamp: Date.now()
+        });
       }
-    } catch (error) {
-      toast.error("Erro ao salvar feedback.");
-    }
-  };
 
-  const handleSaveFeedbackReason = async (reasonId: string) => {
-    try {
-      const adviceRef = doc(db, 'users', userId, 'spiritualGuidance', currentAdviceId);
-      await updateDoc(adviceRef, { feedbackReason: reasonId });
-      toast.info("Obrigado por nos ajudar a melhorar! 💪");
+      // Atualiza estatísticas no localStorage para feedback imediato
+      const stats = JSON.parse(localStorage.getItem('oracaoConjugalStats') || '{"monthlyCount": 0, "currentStreak": 0, "lastDate": ""}');
+      const newStats = {
+        monthlyCount: stats.lastDate.startsWith(format(new Date(), 'yyyy-MM')) ? stats.monthlyCount + 1 : 1,
+        currentStreak: stats.lastDate === format(new Date(Date.now() - 86400000), 'yyyy-MM-dd') ? stats.currentStreak + 1 : 1,
+        lastDate: today
+      };
+      localStorage.setItem('oracaoConjugalStats', JSON.stringify(newStats));
+
+      toast.success("Oração Conjugal registrada! Que bênção! 🙏");
+      onSuccess();
       onClose();
     } catch (error) {
-      toast.error("Erro ao salvar.");
+      console.error(error);
+      toast.error("Erro ao salvar oração.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -169,154 +77,16 @@ const ConjugalPrayerModal = ({ onClose, coupleId, userId, onSuccess }: ConjugalP
       <div className="w-full max-w-md bg-white rounded-[2.5rem] p-8 shadow-2xl relative border max-h-[90vh] overflow-y-auto">
         <button 
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 rounded-full bg-muted hover:bg-muted/80 transition-colors"
+          className="absolute top-6 right-6 p-2 rounded-full bg-muted hover:bg-muted/80 transition-colors z-10"
         >
           <X size={20} />
         </button>
 
-        <AnimatePresence mode="wait">
-          {view === 'initial' && (
-            <motion.div key="initial" className="space-y-6">
-              <div className="text-center space-y-4">
-                <div className="w-16 h-16 bg-[#e8f0f7] rounded-2xl flex items-center justify-center text-3xl mx-auto">💑</div>
-                <h2 className="text-2xl font-bold text-[#2c3e6b]">Oração Conjugal</h2>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  A oração conjugal deve ser feita juntos, presencialmente.<br/>
-                  <strong>Vocês já fizeram a oração conjugal hoje?</strong>
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <Button onClick={handleMarkAsDone} disabled={isSubmitting} className="w-full h-14 rounded-2xl bg-[#c9a84c] text-white font-bold text-lg">
-                  ✅ Sim, já fizemos!
-                </Button>
-                <Button variant="outline" onClick={onClose} className="w-full h-14 rounded-2xl border-2 border-[#2c3e6b] text-[#2c3e6b] font-bold">
-                  ⏰ Ainda não, mas vamos fazer
-                </Button>
-                <Button variant="outline" onClick={() => setView('counseling')} className="w-full h-14 rounded-2xl border-2 border-[#2c3e6b] text-[#2c3e6b] font-bold flex gap-2">
-                  <MessageSquare size={20} /> Preciso de Aconselhamento
-                </Button>
-                <Button variant="ghost" onClick={() => setView('reason')} className="w-full text-muted-foreground hover:text-destructive">
-                  ❌ Não conseguimos hoje
-                </Button>
-              </div>
-
-              <div className="pt-6 border-t space-y-4">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#2c3e6b] text-center">
-                  📅 HORÁRIO DA ORAÇÃO (opcional)
-                </h3>
-                <div className="flex gap-3">
-                  <Input 
-                    type="time" 
-                    value={scheduleTime} 
-                    onChange={(e) => setScheduleTime(e.target.value)}
-                    className="flex-1 h-12 rounded-xl border-2 border-[#e8f0f7]"
-                  />
-                  <Button onClick={handleSaveSchedule} className="bg-[#2c3e6b] text-white rounded-xl px-6">
-                    Salvar
-                  </Button>
-                </div>
-                <p className="text-[10px] text-center text-muted-foreground flex items-center justify-center gap-1">
-                  <Clock size={12} /> Receba lembretes 10min antes
-                </p>
-              </div>
-            </motion.div>
-          )}
-
-          {view === 'counseling' && (
-            <motion.div key="counseling" className="space-y-6">
-              <div className="text-center space-y-2">
-                <div className="inline-block px-3 py-1 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded-full mb-2">
-                  [BETA] Conselhos em fase de testes
-                </div>
-                <h2 className="text-xl font-bold text-[#2c3e6b]">💬 Aconselhamento Espiritual</h2>
-                <p className="text-sm text-muted-foreground">Conte-nos: o que está dificultando a oração conjugal?</p>
-              </div>
-              <Textarea 
-                value={problemText}
-                onChange={(e) => setProblemText(e.target.value)}
-                placeholder="Escreva aqui..."
-                className="min-h-[150px] rounded-2xl border-2 border-[#e8f0f7] focus:border-[#c9a84c]"
-              />
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setView('initial')} className="flex-1 h-12 rounded-xl border-2 border-[#2c3e6b]">
-                  Voltar
-                </Button>
-                <Button onClick={handleSendCounseling} disabled={!problemText.trim() || isSubmitting} className="flex-1 h-12 rounded-xl bg-[#c9a84c] text-white font-bold">
-                  {isSubmitting ? "Processando..." : "Enviar"}
-                </Button>
-              </div>
-            </motion.div>
-          )}
-
-          {view === 'advice' && (
-            <motion.div key="advice" className="space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-xl font-bold text-[#2c3e6b]">🙏 Conselho Espiritual</h2>
-              </div>
-              <div className="bg-[#e8f0f7] p-6 rounded-2xl text-sm leading-relaxed text-[#2c3e6b] whitespace-pre-wrap">
-                {advice}
-              </div>
-              <div className="space-y-4">
-                <p className="text-xs font-bold text-center text-muted-foreground">Este conselho foi útil para você?</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {['😍 Amei', '👍 Gostei', '🤔 Não sei', '👎 Não gostei'].map((f) => (
-                    <Button key={f} variant="outline" onClick={() => handleFeedback(f)} className="h-12 rounded-xl border-2 border-[#e8f0f7] text-xs">
-                      {f}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {view === 'feedback_reason' && (
-            <motion.div key="feedback_reason" className="space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-xl font-bold text-[#2c3e6b]">O que faltou?</h2>
-                <p className="text-sm text-muted-foreground">Ajude-nos a melhorar o aconselhamento</p>
-              </div>
-              <div className="grid grid-cols-1 gap-3">
-                {FEEDBACK_REASONS.map((r) => (
-                  <Button key={r.id} variant="outline" onClick={() => handleSaveFeedbackReason(r.id)} className="h-12 rounded-xl border-2 border-[#e8f0f7] justify-start px-4">
-                    {r.label}
-                  </Button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {view === 'reason' && (
-            <motion.div key="reason" className="space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-xl font-bold text-[#2c3e6b]">O que dificultou?</h2>
-              </div>
-              <div className="grid grid-cols-1 gap-3">
-                {REASONS.map((reason) => (
-                  <div key={reason.id} className="flex items-center space-x-3 p-3 rounded-xl border bg-muted/30">
-                    <Checkbox id={reason.id} checked={selectedReasons.includes(reason.id)} onCheckedChange={() => {
-                      setSelectedReasons(prev => prev.includes(reason.id) ? prev.filter(r => r !== reason.id) : [...prev, reason.id]);
-                    }} />
-                    <Label htmlFor={reason.id} className="text-sm font-medium cursor-pointer flex-1">{reason.label}</Label>
-                  </div>
-                ))}
-              </div>
-              <Button onClick={handleSaveMissed} disabled={selectedReasons.length === 0 || isSubmitting} className="w-full h-14 rounded-2xl bg-[#2c3e6b] text-white font-bold">
-                {isSubmitting ? "Salvando..." : "Enviar Resposta"}
-              </Button>
-            </motion.div>
-          )}
-
-          {view === 'success' && (
-            <motion.div key="success" className="text-center py-10 space-y-6">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 size={48} className="text-green-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-[#2c3e6b]">Que bênção! 🙏</h2>
-              <p className="text-lg text-muted-foreground">Deus abençoe vocês!</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <ConjugalPrayerFlow 
+          liturgia={liturgia}
+          onClose={onClose}
+          onComplete={handleComplete}
+        />
       </div>
     </motion.div>
   );

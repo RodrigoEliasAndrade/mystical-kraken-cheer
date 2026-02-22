@@ -27,6 +27,7 @@ const Index = () => {
   const [activeMethod, setActiveMethod] = useState<'simples' | 'lectio' | 'rapido' | null>(null);
   const [completedDays, setCompletedDays] = useState<string[]>([]);
   const [conjugalCompleted, setConjugalCompleted] = useState(false);
+  const [conjugalStats, setConjugalStats] = useState({ monthlyCount: 0, currentStreak: 0 });
   const [deverData, setDeverData] = useState<any>(null);
   
   const coupleId = "couple_demo_123";
@@ -43,6 +44,10 @@ const Index = () => {
 
     const saved = localStorage.getItem('prayerCompletedDays');
     if (saved) setCompletedDays(JSON.parse(saved));
+
+    // Carrega stats do localStorage
+    const stats = JSON.parse(localStorage.getItem('oracaoConjugalStats') || '{"monthlyCount": 0, "currentStreak": 0, "lastDate": ""}');
+    setConjugalStats(stats);
 
     const prayerRef = doc(db, 'couples', coupleId, 'conjugalPrayer', 'dates');
     const unsubPrayer = onSnapshot(prayerRef, (doc) => {
@@ -147,9 +152,9 @@ const Index = () => {
               <PceCard 
                 icon="💑"
                 title="Oração Conjugal Diária"
-                status={conjugalCompleted ? "Completo hoje" : "Pendente"}
+                status={conjugalCompleted ? "✅ Completo hoje" : "⏳ Pendente"}
                 isCompleted={conjugalCompleted}
-                info="📍 Horário: 21h15"
+                info={conjugalCompleted ? `🔥 Sequência: ${conjugalStats.currentStreak} dias` : "📍 Horário: 21h15"}
                 onClick={() => setShowConjugalModal(true)}
               />
               <PceCard 
@@ -197,6 +202,7 @@ const Index = () => {
             userId={userId}
             onClose={() => setShowConjugalModal(false)}
             onSuccess={() => setConjugalCompleted(true)}
+            liturgia={liturgia}
           />
         )}
       </AnimatePresence>
