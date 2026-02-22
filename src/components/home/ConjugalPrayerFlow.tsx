@@ -30,7 +30,7 @@ const ConjugalPrayerFlow = ({ liturgia, onClose, onComplete }: ConjugalPrayerFlo
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [journal, setJournal] = useState("");
   const [intentions, setIntentions] = useState({ family: "", friends: "", world: "", couple: "" });
-  const [checklist, setChecklist] = useState({ phones: false, close: false, breath: false });
+  const [checklist, setChecklist] = useState({ close: false, breath: false });
 
   // Timer logic for Card 2
   useEffect(() => {
@@ -90,7 +90,6 @@ const ConjugalPrayerFlow = ({ liturgia, onClose, onComplete }: ConjugalPrayerFlo
       </div>
       <div className="space-y-3">
         {[
-          { id: 'phones', label: 'Desliguem celulares' },
           { id: 'close', label: 'Sentem-se próximos' },
           { id: 'breath', label: 'Respirem profundo juntos (3x)' }
         ].map(item => (
