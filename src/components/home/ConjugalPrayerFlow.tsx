@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { 
-  ChevronLeft, ChevronRight, CheckCircle2, Clock, 
-  Heart, MessageSquare, BookOpen, Sparkles, 
-  Check, Play, Pause, RotateCcw, Send
+  ChevronLeft, ChevronRight, CheckCircle2, 
+  Heart, Sparkles, Play, Pause, Info
 } from 'lucide-react';
 import { getDailyWisdom } from '@/data/wisdom';
 import { Progress } from '@/components/ui/progress';
@@ -14,7 +13,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
 
 interface ConjugalPrayerFlowProps {
   liturgia: any;
@@ -30,9 +28,8 @@ const ConjugalPrayerFlow = ({ liturgia, onClose, onComplete }: ConjugalPrayerFlo
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [journal, setJournal] = useState("");
   const [intentions, setIntentions] = useState({ family: "", friends: "", world: "", couple: "" });
-  const [checklist, setChecklist] = useState({ close: false, breath: false });
+  const [checklist, setChecklist] = useState({ faceToFace: false, hands: false, breath: false });
 
-  // Timer logic for Card 2
   useEffect(() => {
     let interval: any;
     if (isTimerRunning && timer > 0) {
@@ -54,6 +51,13 @@ const ConjugalPrayerFlow = ({ liturgia, onClose, onComplete }: ConjugalPrayerFlo
       wisdomDay: wisdom.day,
       intentions
     });
+  };
+
+  // Helper to get a "drop" of the gospel (first 2-3 sentences)
+  const getGospelDrop = (text: string) => {
+    if (!text) return "Carregando palavra...";
+    const sentences = text.split(/(?<=[.!?])\s+/);
+    return sentences.slice(0, 2).join(" ") + "...";
   };
 
   const cards = [
@@ -90,7 +94,8 @@ const ConjugalPrayerFlow = ({ liturgia, onClose, onComplete }: ConjugalPrayerFlo
       </div>
       <div className="space-y-3">
         {[
-          { id: 'close', label: 'Sentem-se próximos' },
+          { id: 'faceToFace', label: 'Sentem-se FRENTE A FRENTE (olhos nos olhos)' },
+          { id: 'hands', label: 'Podem segurar as mãos (opcional)' },
           { id: 'breath', label: 'Respirem profundo juntos (3x)' }
         ].map(item => (
           <div key={item.id} className="flex items-center space-x-3 p-4 rounded-xl bg-[#f5f5f5]">
@@ -104,7 +109,7 @@ const ConjugalPrayerFlow = ({ liturgia, onClose, onComplete }: ConjugalPrayerFlo
         ))}
       </div>
       <div className="pt-4 border-t text-center space-y-4">
-        <p className="text-sm font-medium text-[#2c3e6b]">💑 Olhem um para o outro</p>
+        <p className="text-sm font-bold text-[#2c3e6b]">💑 Olhem um para o outro</p>
         <p className="text-xs text-muted-foreground">30 segundos de silêncio para aquietar o coração</p>
         <div className="flex flex-col items-center gap-3">
           <div className="text-3xl font-black text-[#c9a84c] tabular-nums">{timer}s</div>
@@ -112,7 +117,7 @@ const ConjugalPrayerFlow = ({ liturgia, onClose, onComplete }: ConjugalPrayerFlo
             onClick={() => setIsTimerRunning(!isTimerRunning)}
             className="rounded-full bg-[#2c3e6b] px-8"
           >
-            {isTimerRunning ? <Pause size={20} /> : timer === 30 ? 'Iniciar Timer' : <Play size={20} />}
+            {isTimerRunning ? <Pause size={20} /> : timer === 30 ? 'Iniciar Silêncio' : <Play size={20} />}
           </Button>
         </div>
       </div>
@@ -136,48 +141,61 @@ const ConjugalPrayerFlow = ({ liturgia, onClose, onComplete }: ConjugalPrayerFlo
       </div>
     </div>,
 
-    // Card 4: Word of God
+    // Card 4: Word of God (Gospel Drop)
     <div key="c4" className="space-y-6 py-4 flex flex-col h-full">
       <div className="text-center space-y-1">
         <h3 className="text-lg font-bold text-[#2c3e6b]">📖 Palavra de Deus</h3>
-        <p className="text-xs font-bold text-[#c9a84c] uppercase tracking-widest">
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Escuta da Palavra - ENS</p>
+      </div>
+      <div className="bg-[#f5f5f5] p-6 rounded-2xl border-2 border-dashed border-[#e8f0f7] text-center">
+        <p className="text-[10px] font-black text-[#c9a84c] uppercase tracking-widest mb-2">
           {liturgia?.evangelho?.referencia || "Evangelho do Dia"}
         </p>
-      </div>
-      <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar bg-[#f5f5f5] p-5 rounded-2xl border border-[#e8f0f7]">
-        <p className="text-sm leading-relaxed text-[#2c3e6b] italic">
-          {liturgia?.evangelho?.texto || "Carregando palavra..."}
+        <p className="text-base leading-relaxed text-[#2c3e6b] italic font-medium">
+          "{getGospelDrop(liturgia?.evangelho?.texto)}"
         </p>
       </div>
-      <div className="bg-[#c9a84c]/10 p-4 rounded-2xl border-l-4 border-[#c9a84c]">
-        <p className="text-xs font-black text-[#c9a84c] uppercase mb-1">💭 Para refletir juntos:</p>
-        <p className="text-sm font-medium text-[#2c3e6b]">
-          Como podemos amar mais como Jesus ama no nosso dia a dia?
-        </p>
+      <div className="space-y-4 text-center">
+        <div className="h-px bg-[#e8f0f7] w-full" />
+        <p className="text-sm font-bold text-[#2c3e6b]">💭 Leiam em silêncio e deixem Deus falar</p>
+        <p className="text-xs text-muted-foreground italic">"O que Deus está dizendo através desta Palavra?"</p>
       </div>
     </div>,
 
-    // Card 5: Faith Sharing
+    // Card 5: Faith Sharing (ENS Rules)
     <div key="c5" className="space-y-6 py-4">
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-1">
         <h3 className="text-xl font-bold text-[#2c3e6b]">💬 Partilha de Fé</h3>
-        <p className="text-sm text-muted-foreground">Momento de abrir o coração um ao outro</p>
+        <p className="text-sm text-muted-foreground">Momento de abrir o coração</p>
       </div>
-      <div className="space-y-4">
+      
+      <div className="bg-[#e8f4f8] p-5 rounded-2xl border-2 border-[#2c3e6b]/20 space-y-3">
+        <div className="flex items-center gap-2 text-[#2c3e6b] font-black text-[10px] uppercase tracking-widest">
+          <Info size={14} /> Regra de Ouro da Partilha
+        </div>
+        <div className="space-y-1.5">
+          <p className="text-xs font-bold text-[#2c3e6b]">Quando um fala, o outro APENAS ESCUTA.</p>
+          <ul className="text-[11px] space-y-1 text-[#2c3e6b]/80 font-medium">
+            <li>❌ Não interrompa</li>
+            <li>❌ Não aconselhe ou julgue</li>
+            <li>✅ Apenas acolha com o coração</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="space-y-3">
         {[
-          { icon: "💭", q: "Essa semana, onde eu vi Deus agindo na minha vida?" },
-          { icon: "💑", q: "O que eu sou grato(a) por você, meu amor?" },
+          { icon: "💭", q: "Onde vi Deus agindo na minha vida esta semana?" },
+          { icon: "💑", q: "O que eu sou grato(a) por você hoje?" },
           { icon: "🙏", q: "Onde precisamos da graça de Deus como casal?" }
         ].map((item, i) => (
-          <div key={i} className="p-4 rounded-2xl bg-white border-2 border-[#e8f0f7] flex gap-3">
-            <span className="text-xl">{item.icon}</span>
-            <p className="text-sm font-medium text-[#2c3e6b] leading-tight">{item.q}</p>
+          <div key={i} className="p-3 rounded-xl bg-white border border-[#e8f0f7] flex gap-3 items-center">
+            <span className="text-lg">{item.icon}</span>
+            <p className="text-xs font-medium text-[#2c3e6b] leading-tight">{item.q}</p>
           </div>
         ))}
       </div>
-      <div className="pt-4 text-center">
-        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Sugestão: 5 a 10 minutos de conversa</p>
-      </div>
+      <p className="text-[10px] font-bold text-center text-muted-foreground uppercase tracking-widest">Sugestão: Reservem pelo menos 10 minutos</p>
     </div>,
 
     // Card 6: Intercession
@@ -188,32 +206,35 @@ const ConjugalPrayerFlow = ({ liturgia, onClose, onComplete }: ConjugalPrayerFlo
       </div>
       <div className="space-y-3">
         <div className="space-y-1">
-          <Label className="text-[10px] font-bold uppercase ml-1">👨‍👩‍👧‍👦 Família</Label>
+          <Label className="text-[10px] font-bold uppercase ml-1">👨‍👩‍👧‍👦 Família e Filhos</Label>
           <Input 
-            placeholder="Intenções pelos filhos e parentes..." 
+            placeholder="Intenções pela família..." 
             value={intentions.family}
             onChange={e => setIntentions({...intentions, family: e.target.value})}
-            className="rounded-xl border-2 border-[#e8f0f7]"
+            className="h-10 rounded-xl border-2 border-[#e8f0f7]"
           />
         </div>
         <div className="space-y-1">
-          <Label className="text-[10px] font-bold uppercase ml-1">🤝 Amigos e Equipe</Label>
+          <Label className="text-[10px] font-bold uppercase ml-1">🤝 Amigos e Equipe ENS</Label>
           <Input 
-            placeholder="Pela nossa equipe ENS e amigos..." 
+            placeholder="Pela nossa equipe e amigos..." 
             value={intentions.friends}
             onChange={e => setIntentions({...intentions, friends: e.target.value})}
-            className="rounded-xl border-2 border-[#e8f0f7]"
+            className="h-10 rounded-xl border-2 border-[#e8f0f7]"
           />
         </div>
         <div className="space-y-1">
           <Label className="text-[10px] font-bold uppercase ml-1">💑 Nosso Casal</Label>
           <Input 
-            placeholder="Pela nossa união e santidade..." 
+            placeholder="Pela nossa união..." 
             value={intentions.couple}
             onChange={e => setIntentions({...intentions, couple: e.target.value})}
-            className="rounded-xl border-2 border-[#e8f0f7]"
+            className="h-10 rounded-xl border-2 border-[#e8f0f7]"
           />
         </div>
+      </div>
+      <div className="bg-[#f5f5f5] p-3 rounded-xl">
+        <p className="text-[9px] font-bold text-muted-foreground uppercase text-center">💡 Variem as formas: Terço, Salmos ou Oração Espontânea</p>
       </div>
     </div>,
 
@@ -237,6 +258,7 @@ const ConjugalPrayerFlow = ({ liturgia, onClose, onComplete }: ConjugalPrayerFlo
           Façam o sinal da cruz um sobre o outro dizendo:<br/>
           <span className="font-bold text-[#2c3e6b]">"Que Deus te abençoe, meu amor"</span>
         </p>
+        <p className="text-xs italic text-muted-foreground">Terminem com um abraço ou beijo</p>
       </div>
     </div>,
 
@@ -259,10 +281,10 @@ const ConjugalPrayerFlow = ({ liturgia, onClose, onComplete }: ConjugalPrayerFlo
         <div className="space-y-2">
           <Label className="text-[10px] font-bold uppercase text-muted-foreground">Diário Espiritual (opcional)</Label>
           <Textarea 
-            placeholder="Querem registrar algo sobre este momento?"
+            placeholder="O que Deus falou ao coração de vocês hoje?"
             value={journal}
             onChange={e => setJournal(e.target.value)}
-            className="min-h-[100px] rounded-xl border-none bg-white"
+            className="min-h-[100px] rounded-xl border-none bg-white text-sm"
           />
         </div>
       </div>

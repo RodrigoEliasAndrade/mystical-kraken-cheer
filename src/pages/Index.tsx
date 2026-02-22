@@ -12,7 +12,6 @@ import ConjugalPrayerModal from '@/components/home/ConjugalPrayerModal';
 import DeverSentarModal from '@/components/home/DeverSentarModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, addMonths } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { db } from '@/lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
@@ -154,7 +153,9 @@ const Index = () => {
                 title="Oração Conjugal Diária"
                 status={conjugalCompleted ? "✅ Completo hoje" : "⏳ Pendente"}
                 isCompleted={conjugalCompleted}
-                info={conjugalCompleted ? `🔥 Sequência: ${conjugalStats.currentStreak} dias` : "📍 Horário: 21h15"}
+                info={conjugalCompleted 
+                  ? `🔥 Sequência: ${conjugalStats.currentStreak} dias` 
+                  : `💎 Palavra de hoje disponível`}
                 onClick={() => setShowConjugalModal(true)}
               />
               <PceCard 
@@ -201,7 +202,11 @@ const Index = () => {
             coupleId={coupleId}
             userId={userId}
             onClose={() => setShowConjugalModal(false)}
-            onSuccess={() => setConjugalCompleted(true)}
+            onSuccess={() => {
+              const stats = JSON.parse(localStorage.getItem('oracaoConjugalStats') || '{}');
+              setConjugalStats(stats);
+              setConjugalCompleted(true);
+            }}
             liturgia={liturgia}
           />
         )}

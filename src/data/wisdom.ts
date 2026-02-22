@@ -1,6 +1,6 @@
 export interface WisdomEntry {
   day: number;
-  category: "FÉ" | "COMUNICAÇÃO" | "INTIMIDADE" | "FAMÍLIA" | "DESAFIOS" | "RENOVAÇÃO" | "MISSÃO";
+  category: "FÉ" | "COMUNICAÇÃO" | "INTIMIDADE" | "FAMÍLIA" | "DESAFIOS" | "RENOVAÇÃO" | "MISSÃO" | "ORAÇÃO PESSOAL";
   quote: string;
   author: string;
   reflection: string;
@@ -13,33 +13,49 @@ export const wisdomEntries: WisdomEntry[] = [
     category: "FÉ",
     quote: "A oração conjugal não é um luxo, é oxigênio para o amor.",
     author: "Padre Henri Caffarel",
-    reflection: "Assim como o corpo precisa de ar, o sacramento do matrimônio precisa do diálogo com o Criador para se manter vivo e vibrante.",
-    challenge: "Hoje, ao rezarem, segurem as mãos um do outro durante todo o tempo."
+    reflection: "Assim como respiramos sem pensar, a oração deve ser natural no casal. Não precisa ser longa - apenas verdadeira.",
+    challenge: "Antes de dormir, respirem juntos e agradeçam por 1 coisa do dia."
   },
   {
     day: 2,
-    category: "COMUNICAÇÃO",
-    quote: "O diálogo é a ponte que une dois mundos diferentes.",
-    author: "Anônimo",
-    reflection: "Escutar é um ato de amor mais profundo do que falar. No silêncio da escuta, o outro se sente verdadeiramente acolhido.",
-    challenge: "Durante a partilha, ouça sem interromper e agradeça ao final."
+    category: "ORAÇÃO PESSOAL",
+    quote: "A oração conjugal nasce da oração pessoal. Não podemos dar ao outro o que não temos.",
+    author: "Espiritualidade ENS",
+    reflection: "Cada cônjuge precisa de um encontro pessoal e diário com Deus. A intimidade com Cristo de cada um alimenta a oração do casal.",
+    challenge: "Hoje: Reserve 5 minutos SOZINHO(A) com Deus, além da oração conjugal."
   },
   {
     day: 3,
-    category: "INTIMIDADE",
-    quote: "A maior intimidade não é a física, mas a espiritual.",
-    author: "São João Paulo II",
-    reflection: "Quando um casal reza junto, eles se tornam um só coração diante de Deus, revelando suas almas um ao outro.",
-    challenge: "Digam um ao outro uma virtude que admiram no cônjuge."
+    category: "COMUNICAÇÃO",
+    quote: "Escutar é um ato de amor mais profundo do que falar.",
+    author: "Padre Henri Caffarel",
+    reflection: "No silêncio da escuta, o outro se sente verdadeiramente acolhido. Escutar é abrir espaço para o mistério do outro.",
+    challenge: "Na partilha de hoje, foque 100% em ouvir sem planejar a resposta."
   },
-  // Adicionando mais entradas simuladas para completar o ciclo inicial
-  ...Array.from({ length: 47 }, (_, i) => ({
-    day: i + 4,
-    category: "RENOVAÇÃO" as const,
-    quote: "O amor se renova no perdão diário.",
+  {
+    day: 4,
+    category: "INTIMIDADE",
+    quote: "O casal cristão é o sorriso de Deus para o mundo.",
+    author: "Padre Henri Caffarel",
+    reflection: "Sua união revela como Deus ama: com fidelidade, alegria e doação total.",
+    challenge: "Diga ao seu cônjuge: 'Vejo a luz de Deus em você'."
+  },
+  {
+    day: 5,
+    category: "ORAÇÃO PESSOAL",
+    quote: "A oração pessoal é o 'Dever de Sentar-se' com Deus.",
+    author: "Espiritualidade ENS",
+    reflection: "Sem o encontro individual com o Pai, a oração em casal corre o risco de se tornar apenas um diálogo humano.",
+    challenge: "Hoje, faça sua oração pessoal em um lugar diferente e silencioso."
+  },
+  // Expandindo para 50 entradas iniciais (simuladas para rotação)
+  ...Array.from({ length: 45 }, (_, i) => ({
+    day: i + 6,
+    category: (i % 8 === 0 ? "ORAÇÃO PESSOAL" : "RENOVAÇÃO") as any,
+    quote: "O amor se renova no perdão e na oração diária.",
     author: "Papa Francisco",
     reflection: "Não deixem o sol se pôr sobre a vossa ira. O perdão é o tempero da santidade no lar.",
-    challenge: "Peçam perdão por uma pequena falha de hoje."
+    challenge: "Peçam perdão por uma pequena falha de hoje e recomecem."
   }))
 ];
 
